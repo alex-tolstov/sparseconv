@@ -148,25 +148,23 @@ void CConvolutionLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
 			} 
 		}
 	} 
-    if (this->phase_ != TRAIN && !calculated) {
-		int zeroes = 0;
-	  // Calculate the current (masked) weight and bias
-		for (unsigned int k = 0;k < this->blobs_[0]->count(); ++k) {
-			weightTmp[k] = weight[k]*weightMask[k];
-			if (weightTmp[k] == 0) {
-				zeroes++;
-			}
+	int zeroes = 0;
+  // Calculate the current (masked) weight and bias
+	for (unsigned int k = 0;k < this->blobs_[0]->count(); ++k) {
+		weightTmp[k] = weight[k]*weightMask[k];
+		if (weightTmp[k] == 0) {
+			zeroes++;
 		}
-		if (this->phase_ != TRAIN) {
-			LOG(INFO)<<"zeroes in weight coefficients = " << zeroes << "\n";
-		}
-		if (this->bias_term_){
-			for (unsigned int k = 0;k < this->blobs_[1]->count(); ++k) {
-				biasTmp[k] = bias[k]*biasMask[k];
-			}
-		}
-		calculated = true;
 	}
+	if (this->phase_ != TRAIN) {
+		LOG(INFO)<<"zeroes in weight coefficients = " << zeroes << "\n";
+	}
+	if (this->bias_term_){
+		for (unsigned int k = 0;k < this->blobs_[1]->count(); ++k) {
+			biasTmp[k] = bias[k]*biasMask[k];
+		}
+	}
+	
   LOG(INFO)<< "batch size = " << this->num_  << " bottom size (like number of images of a different size, 1 by default) = " << bottom.size();
 	// Forward calculation with (masked) weight and bias 
 	
@@ -180,10 +178,10 @@ void CConvolutionLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
   for (int i = 0; i < bottom.size(); ++i) {
     const Dtype* bottom_data = bottom[i]->cpu_data();
     Dtype* top_data = top[i]->mutable_cpu_data();
-    LOG(INFO) << "top data size = " << top[i]->count();
+//    LOG(INFO) << "top data size = " << top[i]->count();
 	
-	caffe::CPUTimer timer;
-	timer.Start();
+//	caffe::CPUTimer timer;
+//	timer.Start();
 	
     for (int n = 0; n < this->num_; ++n) {
 	  // multiplication of all outputs of a previous layer by series of matrices
@@ -203,8 +201,8 @@ void CConvolutionLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
 	  //this->forward_cpu_gemm(bottom_data + bottom[i]->offset(n), weightTmp, top_data + top[i]->offset(n));
 	}
     
-   	timer.Stop();
-	LOG(INFO) << "sparse direct convolution calculus microseconds = " << timer.MicroSeconds();
+//  	timer.Stop();
+//	LOG(INFO) << "sparse direct convolution calculus microseconds = " << timer.MicroSeconds();
 /*
     timer.Start();
     for (int n = 0; n < this->num_; ++n) {
@@ -228,15 +226,15 @@ void CConvolutionLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
    	timer.Stop();
 	LOG(INFO) << "dense gemm conv calculus microseconds = " << timer.MicroSeconds();
 	*/ 
-    timer.Start();
+ //   timer.Start();
 		
     for (int n = 0; n < this->num_; ++n) {
 	   if (this->bias_term_) {
 	 	 this->forward_cpu_bias(top_data + top[i]->offset(n), biasTmp);
 	   }
     }
-    timer.Stop();
-    LOG(INFO) << "bias calculus microseconds = " << timer.MicroSeconds();
+  //  timer.Stop();
+  //  LOG(INFO) << "bias calculus microseconds = " << timer.MicroSeconds();
   }
 }
 

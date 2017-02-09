@@ -20,6 +20,6 @@ display: 100
 max_iter: 16000
 # snapshot intermediate results
 snapshot: 50000
-snapshot_prefix: "examples/mnist/lenet_surgery"
+snapshot_prefix: "examples/mnist/lenet_surgery2"
 # solver mode: CPU or GPU
 solver_mode: CPU
