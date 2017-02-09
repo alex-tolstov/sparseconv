@@ -1,0 +1,1 @@
+build/tools/caffe time -model examples/mnist/lenet5_train_test.prototxt -weights examples/mnist/lenet_surgery_iter_16000.caffemodel -iterations 100
