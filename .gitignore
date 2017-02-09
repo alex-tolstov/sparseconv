@@ -1,14 +1,27 @@
 ## General
 
+=======
 # Compiled Object files
 *.slo
 *.lo
 *.o
 *.cuo
+=======
+*.obj
+
+# Precompiled Headers
+*.gch
+*.pch
 
 # Compiled Dynamic libraries
 *.so
 *.dylib
+=======
+*.dll
+
+# Fortran module files
+*.mod
+*.smod
 
 # Compiled Static libraries
 *.lai
@@ -52,8 +65,6 @@
 
 ## Caffe
 
-# User's build configuration
-Makefile.config
 
 # Data and models are either
 # 1. reference, and not casually committed
@@ -93,3 +104,10 @@ LOCK
 LOG*
 CURRENT
 MANIFEST-*
+=======
+*.lib
+
+# Executables
+*.exe
+*.out
+*.app
