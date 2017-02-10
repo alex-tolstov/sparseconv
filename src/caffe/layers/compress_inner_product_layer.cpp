@@ -223,25 +223,25 @@ void CInnerProductLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
   Dtype* top_data = top[0]->mutable_cpu_data();
   caffe::CPUTimer timer;
   timer.Start();
-/*  {
+  {
 	transpose(bottom_data, K_, M_);
 	std::vector<Dtype> nonZeroValues;
 	std::vector<int> indicesX;
 	std::vector<int> indicesY;
 	caffe::convertKernelToCompressed(weightTmp, K_, N_, nonZeroValues, indicesX, indicesY); 
 
-    gustavsonCompressed(&nonZeroValues[0], &indicesX[0], &indicesY[0], nonZeroValues.size(), bottom_data, M_, K_, top_data, M_, K_);
+    gustavsonCompressed(&nonZeroValues[0], &indicesX[0], &indicesY[0], nonZeroValues.size(), bottom_data, M_, K_, top_data, M_, N_);
     transpose(bottom_data, M_, K_);
     transpose(top_data, M_, N_);
-  }*/
+  }
   LOG(INFO)<<"M(batch size) = " << M_ << ", N(number of outputs) = " << N_ << ", K = " << K_;
 
 		
-  caffe_cpu_gemm<Dtype>(CblasNoTrans, CblasTrans, M_, N_, K_, (Dtype)1.,
-      bottom_data, weightTmp, (Dtype)0., top_data);
+  //caffe_cpu_gemm<Dtype>(CblasNoTrans, CblasTrans, M_, N_, K_, (Dtype)1.,
+   //   bottom_data, weightTmp, (Dtype)0., top_data);
 
- // timer.Stop();
- // LOG(INFO) << "gemm calculus microseconds fc = " << timer.MicroSeconds();
+  timer.Stop();
+  LOG(INFO) << "gemm calculus microseconds fc = " << timer.MicroSeconds();
   if (bias_term_) {
     caffe_cpu_gemm<Dtype>(CblasNoTrans, CblasNoTrans, M_, N_, 1, (Dtype)1.,
         bias_multiplier_.cpu_data(), biasTmp, (Dtype)1., top_data);
