@@ -180,8 +180,8 @@ void CConvolutionLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
     Dtype* top_data = top[i]->mutable_cpu_data();
 //    LOG(INFO) << "top data size = " << top[i]->count();
 	
-//	caffe::CPUTimer timer;
-//	timer.Start();
+	caffe::CPUTimer timer;
+	timer.Start();
 	
     for (int n = 0; n < this->num_; ++n) {
 	  // multiplication of all outputs of a previous layer by series of matrices
@@ -201,8 +201,8 @@ void CConvolutionLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
 	  //this->forward_cpu_gemm(bottom_data + bottom[i]->offset(n), weightTmp, top_data + top[i]->offset(n));
 	}
     
-//  	timer.Stop();
-//	LOG(INFO) << "sparse direct convolution calculus microseconds = " << timer.MicroSeconds();
+  	timer.Stop();
+	LOG(INFO) << "sparse direct convolution calculus microseconds = " << timer.MicroSeconds();
 /*
     timer.Start();
     for (int n = 0; n < this->num_; ++n) {

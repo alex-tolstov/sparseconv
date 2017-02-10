@@ -425,7 +425,6 @@ namespace caffe {
 		for (int row = 0; row < nOutputChannels; row++) {
 			const int outOffset = row * dimData;
 			Dtype *eo = &enlargedOutput[outOffset];
-			const int offsetChannel = row * nInputChannels;
 			// diff between (y,x) cells of input and output  
 			const int layersDiff = yOffset * dimX + xOffset;
 			
@@ -446,7 +445,6 @@ namespace caffe {
 					Dtype mult[SIZE_R];
 					Dtype* ei[SIZE_R];
 					
-					#pragma unroll(SIZE_R)
 					for (int i = 0; i < SIZE_R; i++) {
 						mult[i] = kernel[begin + i];
 						int diffStart = getStartDiff(dimX, indicesCol[begin + i], kernelSize, kernelSizeX);
@@ -484,7 +482,6 @@ namespace caffe {
 					Dtype mult[SIZE_R];
 					Dtype* ei[SIZE_R];
 					
-					#pragma unroll(SIZE_R)
 					for (int i = 0; i < SIZE_R; i++) {
 						mult[i] = kernel[begin + i];
 						int diffStart = getStartDiff(dimX, indicesCol[begin + i], kernelSize, kernelSizeX);
@@ -513,7 +510,6 @@ namespace caffe {
 					Dtype mult[SIZE_R];
 					Dtype* ei[SIZE_R];
 					
-					#pragma unroll(SIZE_R)
 					for (int i = 0; i < SIZE_R; i++) {
 						mult[i] = kernel[begin + i];
 						int diffStart = getStartDiff(dimX, indicesCol[begin + i], kernelSize, kernelSizeX);
@@ -579,8 +575,8 @@ namespace caffe {
  		
 		timer.Stop();
 		
-		//LOG(INFO) << "cnt0 = " << cnt0 << ", cnt1 = " << cnt1 << ", cnt2 = " << cnt2 << ", cnt16 = " << cnt16 << ", cnt4 = " << cnt4 << ", cnt8 = " << cnt5;
-		//LOG(INFO) << "malloc=" << timeMalloc << ", copy input=" << timeCopyInput << ", convo time=" <<  convoTime << ", output copy time = " << timer.MicroSeconds();
+		LOG(INFO) << "cnt0 = " << cnt0 << ", cnt1 = " << cnt1 << ", cnt2 = " << cnt2 << ", cnt16 = " << cnt16 << ", cnt4 = " << cnt4 << ", cnt8 = " << cnt5;
+		LOG(INFO) << "malloc=" << timeMalloc << ", copy input=" << timeCopyInput << ", convo time=" <<  convoTime << ", output copy time = " << timer.MicroSeconds();
 	}
 
 	
