@@ -7,7 +7,7 @@
 #include "caffe/util/math_functions.hpp"
 #include "caffe/util/benchmark.hpp"
 #include "caffe/vision_layers.hpp"
-#include "caffe/gustavson.hpp"
+#include "caffe/util/csr.hpp"
 
 #include <cmath>
 

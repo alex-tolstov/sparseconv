@@ -1,3 +1,6 @@
+#ifndef CSR_HPP_
+#define CSR_HPP_
+
 #include <vector>
 #include <cstdlib>
 #include "caffe/util/benchmark.hpp"
@@ -55,4 +58,23 @@ namespace caffe {
 			indicesRow.push_back(lastIndex);
 		}
 	}
-};
+	
+	template <typename Dtype>
+	inline void transpose(Dtype *matrix, int size_x, int size_y) {
+		std::vector<Dtype> transp(size_x * size_y);
+		int new_size_x = size_y;
+		int new_size_y = size_x;
+		for (int y = 0; y < new_size_y; y++) {
+			for (int x = 0; x < new_size_x; x++) {
+				transp[y * new_size_x + x] = matrix[x * size_x + y];
+			}
+		}
+		for (int i = 0; i < size_x * size_y; i++) {
+			matrix[i] = transp[i];
+		}
+	}
+
+}
+
+#undef CSR_HPP_
+#endif

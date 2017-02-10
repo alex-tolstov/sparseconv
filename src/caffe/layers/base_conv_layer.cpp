@@ -6,7 +6,12 @@
 #include "caffe/util/math_functions.hpp"
 #include "caffe/vision_layers.hpp"
 #include "caffe/util/benchmark.hpp"
-#include "caffe/gustavson.hpp"
+#include "caffe/util/direct_sparse_convolution.hpp"
+#include "caffe/util/sparse_gemm_gustavson.hpp"
+#include "caffe/util/direct_sparse_convolution_ex.hpp"
+#ifdef MKL_USE
+#include "caffe/util/sparse_gemm_mkl.hpp"
+#endif
 
 namespace caffe {
 
@@ -157,112 +162,6 @@ void BaseConvolutionLayer<Dtype>::Reshape(const vector<Blob<Dtype>*>& bottom,
   }
 }
 
-template <typename Dtype>
-inline void gustavson(
-	const Dtype * __restrict__ kernel, 
-	const int kernel_offset, 
-	const int kernel_size_x,
-	const int kernel_size_y,
-	const Dtype * __restrict__ image, 
-	const int image_offset, 
-	const int image_size_x,
-	const int image_size_y,
-	Dtype * __restrict__ result,
-	const int result_offset,
-	const int result_size_x,
-	const int result_size_y
-) {
-	
-  std::vector<Dtype> nonZeroValues;
-  std::vector<int> indicesX;
-  std::vector<int> indicesY;
-  caffe::convertKernelToCompressed(kernel, kernel_size_x, kernel_size_y, nonZeroValues, indicesX, indicesY);
-  caffe::CPUTimer timer;
-   timer.Start();
-  
-  gustavsonCompressed(&nonZeroValues[0], &indicesX[0], &indicesY[0], nonZeroValues.size(), image, image_size_x, image_size_y, result, result_size_x, result_size_y);
- timer.Stop();
-  LOG(INFO) << "cconv calculus microseconds = " << timer.MicroSeconds();
-
-/*
-	// zerofill result
-	for (int i = 0; i < result_size_y; i++) {
-		for (int j = 0; j < result_size_x; j++) {
-			result[i * result_offset + j] = 0;
-		}
-	}
-	
-	for (int kernel_line = 0; kernel_line < kernel_size_y; kernel_line++) {
-		for (int kernel_col = 0; kernel_col < kernel_size_x; kernel_col++) {
-			float mult = kernel[kernel_line * kernel_offset + kernel_col];
-			if (std::abs(mult) > 1e-8) {
-				int image_line = kernel_col;
-				
-				const int res_off = kernel_line * result_offset;
-				const int img_off = image_line * image_offset; 
-				#pragma GCC ivdep
-				for (int image_col = 0; image_col < image_size_x; image_col++) {
-					result[res_off + image_col] += mult * image[img_off + image_col];
-				}
-			}
-		}
-	}
-*/
-}
-
-template <typename Dtype>
-inline void naive(
-	const Dtype * __restrict__ kernel, 
-	const int kernel_offset, 
-	const int kernel_size_x,
-	const int kernel_size_y,
-	const Dtype * __restrict__ image, 
-	const int image_offset, 
-	const int image_size_x,
-	const int image_size_y,
-	Dtype * __restrict__ result,
-	const int result_offset,
-	const int result_size_x,
-	const int result_size_y
-) {
-	for (int i = 0; i < result_size_y; i++) {
-		for (int j = 0; j < result_size_x; j++) {
-			result[i * result_offset + j] = 0;
-			for (int k = 0; k < kernel_size_x; k++) {
-				result[i * result_offset + j] += kernel[i * kernel_offset + k] * image[k * image_offset + j];
-			}
-		}
-	}
-}
-
-template <typename Dtype>
-inline void gustavsonGEMM(
-	const Dtype *kernel, 
-	const int kernel_offset, 
-	const int kernel_size_x,
-	const int kernel_size_y,
-	const Dtype *image, 
-	const int image_offset, 
-	const int image_size_x,
-	Dtype *result,
-	const int result_offset
-) {
-	gustavson(
-		kernel, 
-		kernel_offset, 
-		kernel_size_x, 
-		kernel_size_y, 
-		image, 
-		image_offset, 
-		image_size_x, 
-		kernel_size_x, 
-		result, 
-		result_offset, 
-		image_size_x, 
-		kernel_size_y
-	);
-}
-
 
 template <typename Dtype>
 void BaseConvolutionLayer<Dtype>::forward_cpu_sparse_gemm(
@@ -391,23 +290,6 @@ void BaseConvolutionLayer<Dtype>::forward_cpu_gemm(const Dtype* input,
     }
     col_buff = col_buffer_.cpu_data();
   }
-  /*
-    
-    gustavsonGEMM(
-		weights, 
-		kernel_dim_, 
-		kernel_dim_, 
-		conv_out_channels_, 
-
-		col_buff, 
-		conv_out_spatial_dim_, 
-		conv_out_spatial_dim_, 
-		
-		output,
-		conv_out_spatial_dim_
-	);
-  
-*/
      
   for (int g = 0; g < group_; ++g) {
 // (50, 64, 500, ..)

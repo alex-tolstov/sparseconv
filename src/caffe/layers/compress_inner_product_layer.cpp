@@ -8,6 +8,8 @@
 #include "caffe/util/math_functions.hpp"
 #include "caffe/vision_layers.hpp"
 #include "caffe/util/benchmark.hpp"
+#include "caffe/util/csr.hpp"
+#include "caffe/util/sparse_gemm_gustavson.hpp"
 #include <cmath>
 
 namespace caffe {
@@ -116,85 +118,7 @@ void CInnerProductLayer<Dtype>::Reshape(const vector<Blob<Dtype>*>& bottom,
   }
 }
 
-template <typename Dtype>
-inline void transpose(Dtype *matrix, int size_x, int size_y) {
-	std::vector<Dtype> transp(size_x * size_y);
-	int new_size_x = size_y;
-	int new_size_y = size_x;
-	for (int y = 0; y < new_size_y; y++) {
-		for (int x = 0; x < new_size_x; x++) {
-			transp[y * new_size_x + x] = matrix[x * size_x + y];
-		}
-	}
-	for (int i = 0; i < size_x * size_y; i++) {
-		matrix[i] = transp[i];
-	}
-}
 
-
-template <typename Dtype>
-inline void gustavson(
-	const Dtype *kernel, 
-	const int kernel_offset, 
-	const int kernel_size_x,
-	const int kernel_size_y,
-	const Dtype *image, 
-	const int image_offset, 
-	const int image_size_x,
-	const int image_size_y,
-	Dtype *result,
-	const int result_offset,
-	const int result_size_x,
-	const int result_size_y
-) {
-	// zerofill result
-	for (int i = 0; i < result_size_y; i++) {
-		for (int j = 0; j < result_size_x; j++) {
-			result[i * result_offset + j] = 0;
-		}
-	}
-	
-	for (int kernel_line = 0; kernel_line < kernel_size_y; kernel_line++) {
-		for (int kernel_col = 0; kernel_col < kernel_size_x; kernel_col++) {
-			float mult = kernel[kernel_line * kernel_offset + kernel_col];
-			if (std::abs(mult) > 1e-8) {
-				int image_line = kernel_col;
-				
-				for (int image_col = 0; image_col < image_size_x; image_col++) {
-					result[kernel_line * result_offset + image_col] += mult * image[image_line * image_offset + image_col];
-				}
-			}
-		}
-	}
-}
-
-template <typename Dtype>
-inline void gustavsonGEMM(
-	const Dtype *kernel, 
-	const int kernel_offset, 
-	const int kernel_size_x,
-	const int kernel_size_y,
-	const Dtype *image, 
-	const int image_offset, 
-	const int image_size_x,
-	Dtype *result,
-	const int result_offset
-) {
-	gustavson(
-		kernel, 
-		kernel_offset, 
-		kernel_size_x, 
-		kernel_size_y, 
-		image, 
-		image_offset, 
-		image_size_x, 
-		kernel_size_x, 
-		result, 
-		result_offset, 
-		image_size_x, 
-		kernel_size_y
-	);
-}
 
 template <typename Dtype>
 void CInnerProductLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
@@ -297,23 +221,24 @@ void CInnerProductLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
 	// AT: refactored to non-const to transpose 
   Dtype* bottom_data = bottom[0]->mutable_cpu_data();
   Dtype* top_data = top[0]->mutable_cpu_data();
-  //caffe::CPUTimer timer;
-  //timer.Start();
-  {
-	//LOG(INFO) << "tr1";  
-    transpose(bottom_data, K_, M_);
-    //LOG(INFO) << "calc";
-    gustavsonGEMM(weightTmp, K_, K_, N_, bottom_data, M_, M_, top_data, M_);
-    //LOG(INFO) << "tr2";
+  caffe::CPUTimer timer;
+  timer.Start();
+/*  {
+	transpose(bottom_data, K_, M_);
+	std::vector<Dtype> nonZeroValues;
+	std::vector<int> indicesX;
+	std::vector<int> indicesY;
+	caffe::convertKernelToCompressed(weightTmp, K_, N_, nonZeroValues, indicesX, indicesY); 
+
+    gustavsonCompressed(&nonZeroValues[0], &indicesX[0], &indicesY[0], nonZeroValues.size(), bottom_data, M_, K_, top_data, M_, K_);
     transpose(bottom_data, M_, K_);
-    //LOG(INFO) << "tr3";
     transpose(top_data, M_, N_);
-  }
-  //LOG(INFO)<<"M(batch size) = " << M_ << ", N(number of outputs) = " << N_ << ", K = " << K_;
+  }*/
+  LOG(INFO)<<"M(batch size) = " << M_ << ", N(number of outputs) = " << N_ << ", K = " << K_;
 
 		
-//  caffe_cpu_gemm<Dtype>(CblasNoTrans, CblasTrans, M_, N_, K_, (Dtype)1.,
-//      bottom_data, weightTmp, (Dtype)0., top_data);
+  caffe_cpu_gemm<Dtype>(CblasNoTrans, CblasTrans, M_, N_, K_, (Dtype)1.,
+      bottom_data, weightTmp, (Dtype)0., top_data);
 
  // timer.Stop();
  // LOG(INFO) << "gemm calculus microseconds fc = " << timer.MicroSeconds();
