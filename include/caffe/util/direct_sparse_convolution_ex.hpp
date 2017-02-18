@@ -24,10 +24,6 @@ namespace caffe {
 		return realKernelRow * dimX + realKernelCol;
 	}
 	
-	
-	
-	
-
 	template<typename Dtype>
 	inline void directConvolutionCentered(
 		const Dtype *kernel, // sparse matrix of a kernel in CSR format.
@@ -52,10 +48,8 @@ namespace caffe {
 		const int dimY = imgSizeY;
 		const int dimData = dimX * dimY;
 		
-		
 		caffe::CPUTimer time;
 		time.Start();
-		 
 	 
 		std::vector<Dtype> enlargedOutput(dimData * nOutputChannels, 0);
 		std::vector<Dtype> enlargedInput(dimData * nInputChannels, 0);
@@ -80,7 +74,7 @@ namespace caffe {
 		
 		caffe::CPUTimer timer;
 		timer.Start();
-		 
+		
 		const int xOffset = (imgSizeX - resSizeX) / 2;
 		const int yOffset = (imgSizeY - resSizeY) / 2;
 		

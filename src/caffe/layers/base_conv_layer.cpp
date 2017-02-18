@@ -9,6 +9,8 @@
 #include "caffe/util/direct_sparse_convolution.hpp"
 #include "caffe/util/sparse_gemm_gustavson.hpp"
 #include "caffe/util/direct_sparse_convolution_ex.hpp"
+#include "caffe/util/convolution_code_generation.hpp"
+#include "caffe/util/convolution_sparse_cache.hpp"
 #ifdef MKL_USE
 #include "caffe/util/sparse_gemm_mkl.hpp"
 #endif
@@ -200,6 +202,7 @@ void BaseConvolutionLayer<Dtype>::forward_cpu_sparse_gemm(
 		conv_out_spatial_dim_,
 		conv_out_channels_
 	);
+	
 }
 
 
@@ -218,7 +221,7 @@ void BaseConvolutionLayer<Dtype>::forward_cpu_sparse_conv(
 //	LOG(INFO)<< "Channels: input=" << this->channels_ << ", output=" << this->num_output_;
 //	LOG(INFO)<< "Pad w = " << this->pad_w_ << ", pad h = " << this->pad_h_; 
 	
-	caffe::directConvolution2(
+	caffe::directConvolutionSparseCache(
 		weightCompressed,
 		indicesX,
 		indicesRow,
@@ -298,6 +301,7 @@ void BaseConvolutionLayer<Dtype>::forward_cpu_gemm(const Dtype* input,
         (Dtype)1., weights + weight_offset_ * g, col_buff + col_offset_ * g,
         (Dtype)0.,  output + output_offset_ * g);
   }
+  
  }
 
 template <typename Dtype>

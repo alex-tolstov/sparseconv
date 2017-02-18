@@ -167,13 +167,16 @@ void CConvolutionLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
 	
   LOG(INFO)<< "batch size = " << this->num_  << " bottom size (like number of images of a different size, 1 by default) = " << bottom.size();
 	// Forward calculation with (masked) weight and bias 
-	
+
   std::vector<Dtype> nonZeroValues;
   std::vector<int> indicesX;
-  std::vector<int> indicesChannel;
+//  std::vector<int> indicesChannel;
   std::vector<int> indicesY;
   const int kernel_dim = this->blobs_[0]->count() / this->num_output_;
-  caffe::convertKernelToCompressedChannels(weightTmp, kernel_dim, this->num_output_, this->kernel_h_*this->kernel_w_, nonZeroValues, indicesX, indicesChannel, indicesY); 
+  transpose(weightTmp, kernel_dim, this->num_output_);
+  //caffe::convertKernelToCompressedChannels(weightTmp, kernel_dim, this->num_output_, this->kernel_h_*this->kernel_w_, nonZeroValues, indicesX, indicesChannel, indicesY); 
+  caffe::convertKernelToCompressed(weightTmp, this->num_output_, kernel_dim, nonZeroValues, indicesX, indicesY); 
+  transpose(weightTmp, this->num_output_, kernel_dim);
 
   for (int i = 0; i < bottom.size(); ++i) {
     const Dtype* bottom_data = bottom[i]->cpu_data();
@@ -198,7 +201,7 @@ void CConvolutionLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
 		nonZeroValues.size(),
 		top_data + top[i]->offset(n));
 		  
-	  //this->forward_cpu_gemm(bottom_data + bottom[i]->offset(n), weightTmp, top_data + top[i]->offset(n));
+	//  this->forward_cpu_gemm(bottom_data + bottom[i]->offset(n), weightTmp, top_data + top[i]->offset(n));
 	}
     
   	timer.Stop();

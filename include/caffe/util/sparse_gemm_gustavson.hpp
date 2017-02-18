@@ -39,7 +39,7 @@ namespace caffe {
 	 * @param resSizeY
 	 * 				height of res. Must be equal to number of rows in the kernel matrix.
 	 */
-	template <typename Dtype> inline
+	template <typename Dtype> 
 	void gustavsonCompressed(
 		const Dtype *kernelValues, 
 		const int *indicesCol,

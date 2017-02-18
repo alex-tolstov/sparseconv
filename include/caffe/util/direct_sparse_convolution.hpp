@@ -10,7 +10,7 @@ namespace caffe {
 	void processRow(Dtype* output, int resSizeX, const Dtype* input, Dtype mult); 
 
 	template<typename Dtype> 
-	void processRowN(Dtype* output, int resSizeX, const Dtype** input, Dtype* mult, int n); 
+	void processRowN(Dtype* output, int resSizeX, const Dtype* input, const int *shifts, Dtype* mult, int n); 
 
 	template<> 
 	void processRow<float>(float* output, int resSizeX, const float* input, float mult) {
@@ -124,7 +124,7 @@ namespace caffe {
 	}
 	
 	template<> 
-	inline void processRowN<float>(float* output, int resSizeX, const float** input, float* mult, int n) {
+	inline void processRowN<float>(float* output, int resSizeX, const float* input, const int *shifts, float* mult, int n) {
 		const int div8 = resSizeX / 8;
 		
 		for (int i = 0; i < div8; i++) {
@@ -132,10 +132,14 @@ namespace caffe {
 			
 			__m256 out = _mm256_load_ps (output + shift);
 			
+			// n is unlimited
+			// mult[inputIdx] is a constant in code
+			// inputIdx is a constant in code
+			// input also has a constant offset inside (should be changed)
 			for (int inputIdx = 0; inputIdx < n; inputIdx++) {
 				__m256 factor = _mm256_set1_ps (mult[inputIdx]);
 
-				__m256 in = _mm256_loadu_ps (input[inputIdx] + shift);
+				__m256 in = _mm256_loadu_ps (input + shifts[inputIdx] + shift);
 				
 				__m256 multiplied = _mm256_mul_ps (in, factor);
 				
@@ -147,7 +151,7 @@ namespace caffe {
 	}
 	
 	template<> 
-	void processRowN<double>(double* output, int resSizeX, const double** input, double* mult, int n) {
+	void processRowN<double>(double* output, int resSizeX, const double* input, const int *shifts, double* mult, int n) {
 		throw 1;
 	}
 	
@@ -321,7 +325,7 @@ namespace caffe {
 	 * 				height of an output channel. 
 	 */
 	template<typename Dtype>
-	inline void directConvolution2(
+	void directConvolution2(
 		const Dtype *kernel, // sparse matrix of a kernel in CSR format.
 		const int *indicesCol, // sizeNonZeroes
 		const int *indicesRow, // nOutputChannels + 1
@@ -361,7 +365,7 @@ namespace caffe {
 			while (end - begin >= 16) {
 				#define SIZE_R 16
 				Dtype mult[SIZE_R];
-				const Dtype* input[SIZE_R];
+				int inputShifts[SIZE_R];
 				
 				for (int i = 0; i < SIZE_R; i++) {
 					mult[i] = kernel[begin + i];
@@ -372,26 +376,25 @@ namespace caffe {
 					const int realKernelRow = kernelCol / kernelSizeX;
 					const int realKernelCol = kernelCol % kernelSizeX;
 		
-					input[i] = img + imgSizeX * (imgSizeY * channelIdx + realKernelRow) + realKernelCol;
+					inputShifts[i] = imgSizeX * (imgSizeY * channelIdx + realKernelRow) + realKernelCol;
 				}
 				
 				Dtype *currRes = alignedResult + res_off;
+				const Dtype* input = img;
 				
 				for (int y = 0; y < resSizeY; y++) {
-					processRowN(currRes, resSizeX, input, mult, SIZE_R);
+					processRowN(currRes, resSizeX, input, inputShifts, mult, SIZE_R);
 					
 					const int rem8 = resSizeX % 8;
 					for (int x = resSizeX - rem8; x < resSizeX; x++) {
 						Dtype t = 0.0;
 						for (int idx = 0; idx < SIZE_R; idx++) {
-							 t += mult[idx] * input[idx][x];
+							 t += mult[idx] * input[inputShifts[idx] + x];
 						}
 						currRes[x] += t;
 					}
 					
-					for (int i = 0; i < SIZE_R; i++) {
-					 	input[i] += imgSizeX;
-					}
+					input += imgSizeX;
 					currRes += pitchResSizeX;
 				}
 				begin += SIZE_R;
@@ -403,7 +406,7 @@ namespace caffe {
 			while (end - begin >= 8) {
 				#define SIZE_R 8
 				Dtype mult[SIZE_R];
-				const Dtype* input[SIZE_R];
+				int inputShifts[SIZE_R];
 				
 				for (int i = 0; i < SIZE_R; i++) {
 					mult[i] = kernel[begin + i];
@@ -414,43 +417,36 @@ namespace caffe {
 					const int realKernelRow = kernelCol / kernelSizeX;
 					const int realKernelCol = kernelCol % kernelSizeX;
 		
-					input[i] = img + imgSizeX * (imgSizeY * channelIdx + realKernelRow) + realKernelCol;
+					inputShifts[i] = imgSizeX * (imgSizeY * channelIdx + realKernelRow) + realKernelCol;
 				}
-				 
+				
 				Dtype *currRes = alignedResult + res_off;
+				const Dtype* input = img;
 				
 				for (int y = 0; y < resSizeY; y++) {
-					processRowN(currRes, resSizeX, input, mult, SIZE_R);
+					processRowN(currRes, resSizeX, input, inputShifts, mult, SIZE_R);
 					
 					const int rem8 = resSizeX % 8;
 					for (int x = resSizeX - rem8; x < resSizeX; x++) {
-						
-						currRes[x] += 
-							mult[0] * input[0][x] +
-						    mult[1] * input[1][x] +
-						    mult[2] * input[2][x] +
-						    mult[3] * input[3][x] +
-						    mult[4] * input[4][x] +
-						    mult[5] * input[5][x] +
-						    mult[6] * input[6][x] +
-						    mult[7] * input[7][x];
+						Dtype t = 0.0;
+						for (int idx = 0; idx < SIZE_R; idx++) {
+							 t += mult[idx] * input[inputShifts[idx] + x];
+						}
+						currRes[x] += t;
 					}
 					
-					for (int i = 0; i < SIZE_R; i++) {
-					 	input[i] += imgSizeX;
-					}
-					
+					input += imgSizeX;
 					currRes += pitchResSizeX;
 				}
 				begin += SIZE_R;
 				
 				#undef SIZE_R
-			}
+			} 
 			
 			while (end - begin >= 4) {
 				#define SIZE_R 4
 				Dtype mult[SIZE_R];
-				const Dtype* input[SIZE_R];
+				int inputShifts[SIZE_R];
 				
 				for (int i = 0; i < SIZE_R; i++) {
 					mult[i] = kernel[begin + i];
@@ -461,38 +457,36 @@ namespace caffe {
 					const int realKernelRow = kernelCol / kernelSizeX;
 					const int realKernelCol = kernelCol % kernelSizeX;
 		
-					input[i] = img + imgSizeX * (imgSizeY * channelIdx + realKernelRow) + realKernelCol;
+					inputShifts[i] = imgSizeX * (imgSizeY * channelIdx + realKernelRow) + realKernelCol;
 				}
-				 
+				
 				Dtype *currRes = alignedResult + res_off;
+				const Dtype* input = img;
 				
 				for (int y = 0; y < resSizeY; y++) {
-					processRowN(currRes, resSizeX, input, mult, SIZE_R);
+					processRowN(currRes, resSizeX, input, inputShifts, mult, SIZE_R);
 					
 					const int rem8 = resSizeX % 8;
 					for (int x = resSizeX - rem8; x < resSizeX; x++) {
-						
-						currRes[x] += 
-							mult[0] * input[0][x] +
-						    mult[1] * input[1][x] +
-						    mult[2] * input[2][x] +
-						    mult[3] * input[3][x];
+						Dtype t = 0.0;
+						for (int idx = 0; idx < SIZE_R; idx++) {
+							 t += mult[idx] * input[inputShifts[idx] + x];
+						}
+						currRes[x] += t;
 					}
 					
-					for (int i = 0; i < SIZE_R; i++) {
-						input[i] += imgSizeX;
-					}
+					input += imgSizeX;
 					currRes += pitchResSizeX;
 				}
 				begin += SIZE_R;
 				
 				#undef SIZE_R
-			}
+			} 
 			
 			while (end - begin >= 2) {
 				#define SIZE_R 2
 				Dtype mult[SIZE_R];
-				const Dtype* input[SIZE_R];
+				int inputShifts[SIZE_R];
 				
 				for (int i = 0; i < SIZE_R; i++) {
 					mult[i] = kernel[begin + i];
@@ -503,32 +497,31 @@ namespace caffe {
 					const int realKernelRow = kernelCol / kernelSizeX;
 					const int realKernelCol = kernelCol % kernelSizeX;
 		
-					input[i] = img + imgSizeX * (imgSizeY * channelIdx + realKernelRow) + realKernelCol;
+					inputShifts[i] = imgSizeX * (imgSizeY * channelIdx + realKernelRow) + realKernelCol;
 				}
 				
 				Dtype *currRes = alignedResult + res_off;
+				const Dtype* input = img;
 				
 				for (int y = 0; y < resSizeY; y++) {
-					processRowN(currRes, resSizeX, input, mult, SIZE_R);
+					processRowN(currRes, resSizeX, input, inputShifts, mult, SIZE_R);
 					
 					const int rem8 = resSizeX % 8;
 					for (int x = resSizeX - rem8; x < resSizeX; x++) {
-						
-						currRes[x] += 
-							mult[0] * input[0][x] +
-						    mult[1] * input[1][x];
+						Dtype t = 0.0;
+						for (int idx = 0; idx < SIZE_R; idx++) {
+							 t += mult[idx] * input[inputShifts[idx] + x];
+						}
+						currRes[x] += t;
 					}
 					
-					
-					for (int i = 0; i < SIZE_R; i++) {
-						input[i] += imgSizeX;
-					}
+					input += imgSizeX;
 					currRes += pitchResSizeX;
 				}
 				begin += SIZE_R;
 				
 				#undef SIZE_R
-			}
+			} 
 			
 			for (int idx = begin; idx < end; idx++) {
 				const Dtype mult = kernel[idx];
