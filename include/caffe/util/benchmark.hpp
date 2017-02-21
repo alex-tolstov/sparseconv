@@ -2,6 +2,7 @@
 #define CAFFE_UTIL_BENCHMARK_H_
 
 #include <boost/date_time/posix_time/posix_time.hpp>
+#include <time.h>
 
 #include "caffe/util/device_alternate.hpp"
 
@@ -47,6 +48,20 @@ class CPUTimer : public Timer {
   virtual float MicroSeconds();
 };
 
+class PreciseCPUTimer : public CPUTimer {
+ public:
+  explicit PreciseCPUTimer();
+  virtual ~PreciseCPUTimer() {}	
+  virtual void Start();
+  virtual void Stop();
+  virtual float MilliSeconds();
+  virtual float MicroSeconds();
+ private:
+  timespec start_precise_;
+  timespec stop_precise_;
+};
+
 }  // namespace caffe
 
 #endif   // CAFFE_UTIL_BENCHMARK_H_
+

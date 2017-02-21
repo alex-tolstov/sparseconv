@@ -170,20 +170,20 @@ void CConvolutionLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
 
   std::vector<Dtype> nonZeroValues;
   std::vector<int> indicesX;
-//  std::vector<int> indicesChannel;
+  std::vector<int> indicesChannel;
   std::vector<int> indicesY;
   const int kernel_dim = this->blobs_[0]->count() / this->num_output_;
-  transpose(weightTmp, kernel_dim, this->num_output_);
-  //caffe::convertKernelToCompressedChannels(weightTmp, kernel_dim, this->num_output_, this->kernel_h_*this->kernel_w_, nonZeroValues, indicesX, indicesChannel, indicesY); 
-  caffe::convertKernelToCompressed(weightTmp, this->num_output_, kernel_dim, nonZeroValues, indicesX, indicesY); 
-  transpose(weightTmp, this->num_output_, kernel_dim);
+//  transpose(weightTmp, kernel_dim, this->num_output_);
+  caffe::convertKernelToCompressedChannels(weightTmp, kernel_dim, this->num_output_, this->kernel_h_*this->kernel_w_, nonZeroValues, indicesX, indicesChannel, indicesY); 
+  //caffe::convertKernelToCompressed(weightTmp, this->num_output_, kernel_dim, nonZeroValues, indicesX, indicesY); 
+//  transpose(weightTmp, this->num_output_, kernel_dim);
 
   for (int i = 0; i < bottom.size(); ++i) {
     const Dtype* bottom_data = bottom[i]->cpu_data();
     Dtype* top_data = top[i]->mutable_cpu_data();
 //    LOG(INFO) << "top data size = " << top[i]->count();
 	
-	caffe::CPUTimer timer;
+	caffe::PreciseCPUTimer timer;
 	timer.Start();
 	
     for (int n = 0; n < this->num_; ++n) {

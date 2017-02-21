@@ -47,18 +47,10 @@ namespace caffe {
 		const int dimX = imgSizeX + 2 * kernelSizeX;
 		const int dimY = imgSizeY;
 		const int dimData = dimX * dimY;
-		
-		caffe::CPUTimer time;
-		time.Start();
 	 
 		std::vector<Dtype> enlargedOutput(dimData * nOutputChannels, 0);
 		std::vector<Dtype> enlargedInput(dimData * nInputChannels, 0);
 		
-		
-		time.Stop();
-		int timeMalloc = time.MicroSeconds();
-		
-		time.Start();
 		for (int ch = 0; ch < nInputChannels; ch++) {
 			for (int y = 0; y < imgSizeY; y++) {
 				const int inputShiftX = ch * dimData + y * dimX + kernelSizeX;
@@ -69,51 +61,39 @@ namespace caffe {
 				}
 			}
 		}
-		time.Stop();
-		int timeCopyInput = time.MicroSeconds();
-		
-		caffe::CPUTimer timer;
-		timer.Start();
 		
 		const int xOffset = (imgSizeX - resSizeX) / 2;
 		const int yOffset = (imgSizeY - resSizeY) / 2;
-		
+		const int layersDiff = yOffset * dimX + xOffset;
 		const int kernelSize = kernelSizeX * kernelSizeY;
+		const int beginIndexOutput = layersDiff + kernelSizeX; 
+		const int endIdx = (yOffset + resSizeY - 1) * dimX + kernelSizeX + xOffset + resSizeX; 
 		
 		for (int row = 0; row < nOutputChannels; row++) {
 			const int outOffset = row * dimData;
 			Dtype *eo = &enlargedOutput[outOffset];
 			for (int idx = indicesRow[row]; idx < indicesRow[row + 1]; idx++) {
-				Dtype mult = kernel[idx];
+				const Dtype mult = kernel[idx];
 				int kernelCol = indicesCol[idx];
-				 
-				std::div_t divRes = std::div(kernelCol, kernelSize);
-				const int channelIdx = divRes.quot;
-				kernelCol = divRes.rem;
+				
+				const int channelIdx = kernelCol / kernelSize;
+				kernelCol = kernelCol % kernelSize;
 				
 				const int realKernelRow = kernelCol / kernelSizeX;
 				const int realKernelCol = kernelCol % kernelSizeX;
 			
 				const int inOffset = channelIdx * dimData;
 				
-				const int layersDiff = yOffset * dimX + xOffset;
 				const int diffStart = realKernelRow * dimX + realKernelCol;
 				
-				const int beginIndexOutput = layersDiff + kernelSizeX;
-				const Dtype* ei = &enlargedInput[inOffset + diffStart - layersDiff];
+				const Dtype* eiStart = &enlargedInput[inOffset + diffStart + kernelSizeX];
 				
-				const int endIdx = (yOffset + resSizeY - 1) * dimX + kernelSizeX + xOffset + resSizeX;
-	
 				for (int outputIdx = beginIndexOutput; outputIdx < endIdx; outputIdx++) {
-					eo[outputIdx] += mult * ei[outputIdx];
-				} 
+					eo[outputIdx] += mult * eiStart[outputIdx - beginIndexOutput];
+				}
 			}
 		}
-		
-		timer.Stop();
-		int convoTime = timer.MicroSeconds();
-		
-		timer.Start();
+
 		for (int ch = 0; ch < nOutputChannels; ch++) {
 			for (int y = 0; y < resSizeY; y++) {
 				const int resOffset = ch * resSizeX * resSizeY + y * resSizeX;
@@ -123,12 +103,7 @@ namespace caffe {
 				}
 			}
 		}
- 		
-		timer.Stop();
-		//LOG(INFO) << "malloc=" << timeMalloc << ", copy input=" << timeCopyInput << ", convo time=" <<  convoTime << ", output copy time = " << timer.MicroSeconds();
 	}
-
-
 	
 	
 	template<typename Dtype>

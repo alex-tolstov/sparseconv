@@ -221,7 +221,7 @@ void BaseConvolutionLayer<Dtype>::forward_cpu_sparse_conv(
 //	LOG(INFO)<< "Channels: input=" << this->channels_ << ", output=" << this->num_output_;
 //	LOG(INFO)<< "Pad w = " << this->pad_w_ << ", pad h = " << this->pad_h_; 
 	
-	caffe::directConvolutionSparseCache(
+	caffe::directConvolutionCentered(
 		weightCompressed,
 		indicesX,
 		indicesRow,
