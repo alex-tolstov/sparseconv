@@ -24,6 +24,17 @@ namespace caffe {
 		return realKernelRow * dimX + realKernelCol;
 	}
 	
+	
+	void process2FromInput(float* inputStart, float* outputStart, int outputSize, int layerDiff, float k1, float k2, int diff1, int diff2) {
+		for (int i = 0; i < outputSize; i++) {
+			float input = inputStart[i + diff1 - layerDiff];
+			outputStart[i] += input * k1;
+			outputStart[i + diff1 - diff2] += input * k2;
+			float input2 = inputStart[i + diff1 - diff2 + diff1 - layerDiff];
+			outputStart[i + diff1 - diff2] = input2 * k1;
+		}
+	}
+	
 	template<typename Dtype>
 	inline void directConvolutionCentered(
 		const Dtype *kernel, // sparse matrix of a kernel in CSR format.
@@ -410,11 +421,11 @@ namespace caffe {
 
 				while (end - begin >= 16) {
 					cnt16++;
-					#define SIZE_R 16
-					Dtype mult[SIZE_R];
-					Dtype* ei[SIZE_R];
+					#define SIZE_RT 16
+					Dtype mult[SIZE_RT];
+					Dtype* ei[SIZE_RT];
 					
-					for (int i = 0; i < SIZE_R; i++) {
+					for (int i = 0; i < SIZE_RT; i++) {
 						mult[i] = kernel[begin + i];
 						int diffStart = getStartDiff(dimX, indicesCol[begin + i], kernelSize, kernelSizeX);
 						int inOffset = indicesCol[begin + i] / kernelSize * dimData;
@@ -440,18 +451,18 @@ namespace caffe {
 							mult[15] * ei[15][outputIdx];
 
 					}
-					begin += SIZE_R;
-					#undef SIZE_R
+					begin += SIZE_RT;
+					#undef SIZE_RT
 				}
 
 				while (end - begin >= 8) {
 					cnt5++;
 
-					#define SIZE_R 8
-					Dtype mult[SIZE_R];
-					Dtype* ei[SIZE_R];
+					#define SIZE_RT 8
+					Dtype mult[SIZE_RT];
+					Dtype* ei[SIZE_RT];
 					
-					for (int i = 0; i < SIZE_R; i++) {
+					for (int i = 0; i < SIZE_RT; i++) {
 						mult[i] = kernel[begin + i];
 						int diffStart = getStartDiff(dimX, indicesCol[begin + i], kernelSize, kernelSizeX);
 						int inOffset = indicesCol[begin + i] / kernelSize * dimData;
@@ -468,18 +479,18 @@ namespace caffe {
 							mult[6] * ei[6][outputIdx] + 
 							mult[7] * ei[7][outputIdx];
 					}
-					begin += SIZE_R;
-					#undef SIZE_R
+					begin += SIZE_RT;
+					#undef SIZE_RT
 				}
 				
 				
 				while (end - begin >= 4) {
 					cnt4++;
-					#define SIZE_R 4
-					Dtype mult[SIZE_R];
-					Dtype* ei[SIZE_R];
+					#define SIZE_RT 4
+					Dtype mult[SIZE_RT];
+					Dtype* ei[SIZE_RT];
 					
-					for (int i = 0; i < SIZE_R; i++) {
+					for (int i = 0; i < SIZE_RT; i++) {
 						mult[i] = kernel[begin + i];
 						int diffStart = getStartDiff(dimX, indicesCol[begin + i], kernelSize, kernelSizeX);
 						int inOffset = indicesCol[begin + i] / kernelSize * dimData;
@@ -492,8 +503,8 @@ namespace caffe {
 							mult[2] * ei[2][outputIdx] + 
 							mult[3] * ei[3][outputIdx];
 					}
-					begin += SIZE_R;
-					#undef SIZE_R
+					begin += SIZE_RT;
+					#undef SIZE_RT
 				}
 				
 				while (end - begin >= 2) {

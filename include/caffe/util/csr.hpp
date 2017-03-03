@@ -58,7 +58,50 @@ namespace caffe {
 			indicesRow.push_back(lastIndex);
 		}
 	}
-	
+
+	template <class Dtype>
+	inline void convertKernelToCompressedChannelsSpecial(
+			const Dtype *kernel,
+			const int sizeX,
+			const int sizeY,
+			const int kernelSizeX,
+			const int kernelSizeY,
+			std::vector<Dtype> &values,
+			std::vector<int> &cellInfo,
+			std::vector<int> &indicesChannel,
+			std::vector<int> &indicesRow
+	) {
+		const int kernelSize = kernelSizeX * kernelSizeY;
+		const int channelSize = kernelSize;
+		int lastIndex = 0;
+		indicesRow.push_back(0);
+		indicesChannel.push_back(0);
+		for (int y = 0; y < sizeY; y++) {
+			const int nChannels = sizeX / channelSize;
+			for (int ch = 0; ch < nChannels; ch++) {
+				int countInTheChannel = 0;
+				for (int i = 0; i < channelSize; i++) {
+					int x = ch * channelSize + i;
+					if (kernel[y * sizeX + x] != 0) {
+						values.push_back(kernel[y * sizeX + x]);
+
+						int kernel = x % kernelSize;
+						int kx = kernel % kernelSizeX;
+						int ky = kernel / kernelSizeY;
+
+						cellInfo.push_back(kx + (ky << 8));
+
+						countInTheChannel++;
+					}
+				}
+				lastIndex += countInTheChannel;
+				indicesChannel.push_back(lastIndex);
+			}
+			indicesRow.push_back(lastIndex);
+		}
+	}
+
+
 	template <typename Dtype>
 	inline void transpose(Dtype *matrix, int size_x, int size_y) {
 		std::vector<Dtype> transp(size_x * size_y);
