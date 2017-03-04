@@ -108,35 +108,39 @@ namespace caffe {
 			(~((1 << 1) | (1 << 2) | (1 << 3) | (((1 << 1) | (1 << 2) | (1 << 3)) << 4))) & 0xFF // 1 0 0 0 1 0 0 0
 	};
 
-	__m256 run0(__m256 left, __m256 right) {
+	inline __m256 run0(__m256 left, __m256 right) {
 		return left;
 	}
 
-	__m256 run1(__m256 left, __m256 right) {
+	inline __m256 run1(__m256 left, __m256 right) {
 		__m256 blended = _mm256_blend_ps(left, right, (1 << 1) - 1);
 		__m256 permuted = _mm256_permute_ps(blended, PERMUTATIONS[1]);
 		__m256 swapped = _mm256_permute2f128_ps(permuted, permuted, 1);
 		return _mm256_blend_ps(permuted, swapped, BLENDS[1]);
 	}
 
-	__m256 run2(__m256 left, __m256 right) {
+	inline __m256 run2(__m256 left, __m256 right) {
 		__m256 blended = _mm256_blend_ps(left, right, (1 << 2) - 1);
 		__m256 permuted = _mm256_permute_ps(blended, PERMUTATIONS[2]);
 		__m256 swapped = _mm256_permute2f128_ps(permuted, permuted, 1);
 		return _mm256_blend_ps(permuted, swapped, BLENDS[2]);
 	}
 
-	__m256 run3(__m256 left, __m256 right) {
+	inline __m256 run3(__m256 left, __m256 right) {
 		__m256 blended = _mm256_blend_ps(left, right, (1 << 3) - 1);
 		__m256 permuted = _mm256_permute_ps(blended, PERMUTATIONS[3]);
 		__m256 swapped = _mm256_permute2f128_ps(permuted, permuted, 1);
 		return _mm256_blend_ps(permuted, swapped, BLENDS[3]);
 	}
 
-	__m256 run4(__m256 left, __m256 right) {
+	inline __m256 run4(__m256 left, __m256 right) {
 		__m256 blended = _mm256_blend_ps(left, right, (1 << 4) - 1);
 		__m256 swapped = _mm256_permute2f128_ps(blended, blended, 1);
 		return swapped;
+	}
+
+	__m256 read(const float *from) {
+		return _mm256_loadu_ps(from);
 	}
 
 	typedef __m256(*FunctionPointer)(__m256, __m256);
@@ -249,26 +253,33 @@ namespace caffe {
 		for (int i = 0; i < div8; i++) {
 			const int shift = i << 3;
 
-			for (int inputRow = 0; inputRow < inputSizeY; inputRow++) {
+#define SIZE_RT 6
+			__m256 collectedOutput[SIZE_RT];
+			for (int inputRow = 1; inputRow < inputSizeY; inputRow += 2) {
 
 				// output = N subsequent lines with the same offset, e.g. N=kernelSizeX
 				// 2 might not be enough, for example if kernel={ {0, 0, 3}, {0, 0, 0}, {4, 0, 0} }
 
-#define SIZE_RT 5
-				__m256 collectedOutput[SIZE_RT];
-				for (int innerOutputIdx = 0; innerOutputIdx < SIZE_RT; innerOutputIdx++) {
-                    int realRowIdx = inputRow - innerOutputIdx;
-					if (0 <= realRowIdx && realRowIdx < resSizeY) {
-                        collectedOutput[innerOutputIdx] = _mm256_loadu_ps(
-                                output + resPitchSizeX * realRowIdx + shift);
-                    }
+				for (int innerOutputIdx = SIZE_RT - 1; innerOutputIdx > 1; innerOutputIdx--) {
+					collectedOutput[innerOutputIdx] = collectedOutput[innerOutputIdx - 2];
 				}
+				for (int innerOutputIdx = 0; innerOutputIdx < 2; innerOutputIdx++) {
+					int realIdx = inputRow - innerOutputIdx;
+					if (realIdx < resSizeY) {
+						collectedOutput[innerOutputIdx] = _mm256_loadu_ps(output + resPitchSizeX * realIdx + shift);
+					}
+				}
+
 
 				for (int inputChannel = 0; inputChannel < nInputChannels; inputChannel++) {
                     const int inputOffset = inputSize * inputChannel + inputRow * inputSizeX + shift;
+					const int inputOffset1 = inputSize * inputChannel + (inputRow - 1) * inputSizeX + shift;
 
 					__m256 left = _mm256_loadu_ps (input + inputOffset);
                     __m256 right = _mm256_loadu_ps(input + inputOffset + 8);
+
+					__m256 left0 = _mm256_loadu_ps (input + inputOffset1);
+					__m256 right0 = _mm256_loadu_ps(input + inputOffset1 + 8);
 
                     const int begin = indicesChannel[inputChannel];
 					const int end = indicesChannel[inputChannel + 1];
@@ -279,26 +290,27 @@ namespace caffe {
 						// kernelRow helps to select correct output
 						const int kernelRow = (kernelColRow >> 8) & 0xFF;
 
-						int realRowIdx = inputRow - kernelRow;
-						if (0 <= realRowIdx && realRowIdx < resSizeY) {
+						__m256 multiplier = _mm256_set1_ps(kernel[nonZeroValueIdx]);
 
-							__m256 multiplier = _mm256_set1_ps(kernel[nonZeroValueIdx]);
+						__m256 generated = fp[kernelCol](left, right); // read(input + inputOffset + kernelCol);
+						//fp[kernelCol](left, right);
+						//_mm256_loadu_ps(input + inputOffset + kernelCol);
+						//fp[kernelCol](left, right);
+						//join2Values(left, right, kernelCol);
+						collectedOutput[kernelRow] = _mm256_add_ps(collectedOutput[kernelRow],
+																   _mm256_mul_ps(multiplier, generated));
 
-							__m256 generated = fp[kernelCol](left, right);//join2Values(left, right, kernelCol);
-
-							collectedOutput[kernelRow] = _mm256_add_ps(collectedOutput[kernelRow],
-																	   _mm256_mul_ps(multiplier, generated));
-
-						}
+						generated = fp[kernelCol](left0, right0); // read(input + inputOffset1 + kernelCol);
+						collectedOutput[kernelRow + 1] = _mm256_add_ps(collectedOutput[kernelRow + 1],
+																   _mm256_mul_ps(multiplier, generated));
 					}
 				}
-
-				for (int innerOutputIdx = 0; innerOutputIdx < SIZE_RT; innerOutputIdx++) {
-					int realRowIdx = inputRow - innerOutputIdx;
+				for (int innerOutputIdx = 0; innerOutputIdx < 2; innerOutputIdx++) {
+					const int realRowIdx = inputRow - (SIZE_RT - innerOutputIdx - 1);
 					if (0 <= realRowIdx && realRowIdx < resSizeY) {
-                        _mm256_storeu_ps(output + resPitchSizeX * realRowIdx + shift,
-                                         collectedOutput[innerOutputIdx]);
-                    }
+						_mm256_storeu_ps(output + resPitchSizeX * realRowIdx + shift,
+										 collectedOutput[SIZE_RT - innerOutputIdx - 1]);
+					}
 				}
 #undef SIZE_RT
 			}
