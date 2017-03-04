@@ -108,6 +108,40 @@ namespace caffe {
 			(~((1 << 1) | (1 << 2) | (1 << 3) | (((1 << 1) | (1 << 2) | (1 << 3)) << 4))) & 0xFF // 1 0 0 0 1 0 0 0
 	};
 
+	__m256 run0(__m256 left, __m256 right) {
+		return left;
+	}
+
+	__m256 run1(__m256 left, __m256 right) {
+		__m256 blended = _mm256_blend_ps(left, right, (1 << 1) - 1);
+		__m256 permuted = _mm256_permute_ps(blended, PERMUTATIONS[1]);
+		__m256 swapped = _mm256_permute2f128_ps(permuted, permuted, 1);
+		return _mm256_blend_ps(permuted, swapped, BLENDS[1]);
+	}
+
+	__m256 run2(__m256 left, __m256 right) {
+		__m256 blended = _mm256_blend_ps(left, right, (1 << 2) - 1);
+		__m256 permuted = _mm256_permute_ps(blended, PERMUTATIONS[2]);
+		__m256 swapped = _mm256_permute2f128_ps(permuted, permuted, 1);
+		return _mm256_blend_ps(permuted, swapped, BLENDS[2]);
+	}
+
+	__m256 run3(__m256 left, __m256 right) {
+		__m256 blended = _mm256_blend_ps(left, right, (1 << 3) - 1);
+		__m256 permuted = _mm256_permute_ps(blended, PERMUTATIONS[3]);
+		__m256 swapped = _mm256_permute2f128_ps(permuted, permuted, 1);
+		return _mm256_blend_ps(permuted, swapped, BLENDS[3]);
+	}
+
+	__m256 run4(__m256 left, __m256 right) {
+		__m256 blended = _mm256_blend_ps(left, right, (1 << 4) - 1);
+		__m256 swapped = _mm256_permute2f128_ps(blended, blended, 1);
+		return swapped;
+	}
+
+	typedef __m256(*FunctionPointer)(__m256, __m256);
+	FunctionPointer fp[5] = {&run0, &run1, &run2, &run3, &run4};
+
 	__m256 join2Values(__m256 left, __m256 right, int shiftLeft) {
         // blend
         // permute
@@ -250,7 +284,7 @@ namespace caffe {
 
 							__m256 multiplier = _mm256_set1_ps(kernel[nonZeroValueIdx]);
 
-							__m256 generated = join2Values(left, right, kernelCol);
+							__m256 generated = fp[kernelCol](left, right);//join2Values(left, right, kernelCol);
 
 							collectedOutput[kernelRow] = _mm256_add_ps(collectedOutput[kernelRow],
 																	   _mm256_mul_ps(multiplier, generated));
