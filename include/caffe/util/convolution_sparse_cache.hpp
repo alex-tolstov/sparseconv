@@ -263,13 +263,13 @@ namespace caffe {
 				for (int innerOutputIdx = SIZE_RT - 1; innerOutputIdx > 1; innerOutputIdx--) {
 					collectedOutput[innerOutputIdx] = collectedOutput[innerOutputIdx - 2];
 				}
+
 				for (int innerOutputIdx = 0; innerOutputIdx < 2; innerOutputIdx++) {
 					int realIdx = inputRow - innerOutputIdx;
 					if (realIdx < resSizeY) {
-						collectedOutput[innerOutputIdx] = _mm256_loadu_ps(output + resPitchSizeX * realIdx + shift);
+						collectedOutput[innerOutputIdx] = _mm256_setzero_ps();
 					}
 				}
-
 
 				for (int inputChannel = 0; inputChannel < nInputChannels; inputChannel++) {
                     const int inputOffset = inputSize * inputChannel + inputRow * inputSizeX + shift;
@@ -344,10 +344,6 @@ namespace caffe {
 			throw "Cannot allocate memory";
 		}
 
-		for (int i = 0; i < pitchResSizeX * pitchResSizeY * nOutputChannels; i++) {
-			alignedResult[i] = 0;
-		}
-
 		for (int outputChannelIdx = 0; outputChannelIdx < nOutputChannels; outputChannelIdx++) {
 			const int outOffset = outputChannelIdx * pitchResSizeX * pitchResSizeY;
 			Dtype *currRes = &alignedResult[outOffset];
@@ -376,7 +372,7 @@ namespace caffe {
 		free(alignedResult);
 	}
 
-	
+
 	template<typename Dtype>
 	void directConvolutionSparseCache(
 		const Dtype *kernel, // kernel matrix has to be transposed
