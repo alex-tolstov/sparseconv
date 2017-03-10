@@ -43,6 +43,7 @@ std::string directConvolutionRegistersCodegen(
         code << "\t\t\tcollectedOutput[0] = _mm256_setzero_ps();" << std::endl;
 
         for (int inputChannelIdx = 0; inputChannelIdx < nInputChannels; inputChannelIdx++) {
+            code << "\t{" << std::endl;
             code << "\t\t\tconst int inputChannelIdx = " << inputChannelIdx << ";" << std::endl;
             code << "\t\t\tconst int inputOffset = inputSize * inputChannelIdx + inputRow * imgSizeX + shift;" << std::endl;
 
@@ -58,12 +59,13 @@ std::string directConvolutionRegistersCodegen(
                 code << "\t\t\t{" << std::endl;
                 code << "\t\t\t\tconst int kernelCol=" << kernelCol << ";"<< std::endl;
                 code << "\t\t\t\tconst int kernelRow=" << kernelRow << ";"<< std::endl;
-                code << "\t\t\t\tconst float value=" << value << ";"<< std::endl;
+                code << "\t\t\t\tconst float value=" << value << ";" << std::endl;
                 code << "\t\t\t\t__m256 multiplier = _mm256_set1_ps(value);"<< std::endl;
                 code << "\t\t\t\t__m256 generated = _mm256_loadu_ps(input + inputOffset + kernelCol);"<< std::endl;
                 code << "\t\t\t\tcollectedOutput[kernelRow] = _mm256_add_ps(collectedOutput[kernelRow], _mm256_mul_ps(multiplier, generated));"<< std::endl;
                 code << "\t\t\t}" << std::endl;
             }
+            code << "\t}" << std::endl;
         }
 
         code << "\t\t\tconst int realRowIdx = inputRow - (kernelSizeY - 1);" << std::endl;
