@@ -1,5 +1,5 @@
 #include <vector>
-
+#include <fstream>
 #include "caffe/filler.hpp"
 #include "caffe/layer.hpp"
 #include "caffe/util/io.hpp"
@@ -9,7 +9,9 @@
 #include "caffe/vision_layers.hpp"
 #include "caffe/util/csr.hpp"
 
+
 #include <cmath>
+#include "caffe/util/codegen.h"
 
 namespace caffe {
 
@@ -174,10 +176,27 @@ void CConvolutionLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
   std::vector<int> indicesY;
   const int kernel_dim = this->blobs_[0]->count() / this->num_output_;
 //  transpose(weightTmp, kernel_dim, this->num_output_);
- // caffe::convertKernelToCompressedChannels(weightTmp, kernel_dim, this->num_output_, this->kernel_h_*this->kernel_w_, nonZeroValues, indicesX, indicesChannel, indicesY);
+//  caffe::convertKernelToCompressedChannels(weightTmp, kernel_dim, this->num_output_, this->kernel_h_*this->kernel_w_, nonZeroValues, indicesX, indicesChannel, indicesY);
+
 	caffe::convertKernelToCompressedChannelsSpecial(weightTmp, kernel_dim, this->num_output_, this->kernel_w_, this->kernel_h_, nonZeroValues, indicesX, indicesChannel, indicesY);
-  //caffe::convertKernelToCompressed(weightTmp, this->num_output_, kernel_dim, nonZeroValues, indicesX, indicesY); 
+//  caffe::convertKernelToCompressed(weightTmp, this->num_output_, kernel_dim, nonZeroValues, indicesX, indicesY);
+
+
+
+  std::string code = caffe::directConvolutionRegistersCodegen(&nonZeroValues[0], &indicesX[0], &indicesChannel[0], this->kernel_h_, this->kernel_w_, this->channels_, this->num_output_);
+  std::stringstream fileName;
+  fileName << "/home/alex/paulsutter/code_" << this->num_output_;
+    LOG(INFO) << "FileName=" << fileName.str();
+  std::ofstream f;
+    f.open(fileName.str().c_str());
+    f << code;
+    f.close();
+
+
+
 //  transpose(weightTmp, this->num_output_, kernel_dim);
+
+
 
   for (int i = 0; i < bottom.size(); ++i) {
     const Dtype* bottom_data = bottom[i]->cpu_data();
@@ -192,16 +211,16 @@ void CConvolutionLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
       // 1. imgToCol
       // 2. weightTmp to sparse representation for every sub-image in input.
       // 3. fill values of every of new sub-images in output by means sparse-dense multiplication(s).
-      
-	  this->forward_cpu_sparse_conv_ch (
-		bottom_data + bottom[i]->offset(n), 
-		&nonZeroValues[0], 
-		&indicesX[0],
-		&indicesChannel[0],
-		&indicesY[0],
-		nonZeroValues.size(),
-		top_data + top[i]->offset(n));
-		  
+
+        this->forward_cpu_sparse_conv_ch (
+                bottom_data + bottom[i]->offset(n),
+                &nonZeroValues[0],
+                &indicesX[0],
+                &indicesChannel[0],
+                &indicesY[0],
+                nonZeroValues.size(),
+                top_data + top[i]->offset(n));
+
 	//  this->forward_cpu_gemm(bottom_data + bottom[i]->offset(n), weightTmp, top_data + top[i]->offset(n));
 	}
     

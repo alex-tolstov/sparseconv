@@ -125,29 +125,54 @@ namespace caffe {
 	
 	template<> 
 	inline void processRowN<float>(float* output, int resSizeX, const float* input, const int *shifts, float* mult, int n) {
-		const int div8 = resSizeX / 8;
-		
-		for (int i = 0; i < div8; i++) {
-			const int shift = i << 3;
-			
-			__m256 out = _mm256_load_ps (output + shift);
-			
-			// n is unlimited
-			// mult[inputIdx] is a constant in code
-			// inputIdx is a constant in code
-			// input also has a constant offset inside (should be changed)
-			for (int inputIdx = 0; inputIdx < n; inputIdx++) {
-				__m256 factor = _mm256_set1_ps (mult[inputIdx]);
+        const int div8 = resSizeX / 8;
+		if (div8 == 3) {
+            __m256 out1 = _mm256_load_ps(output + 0);
+            __m256 out2 = _mm256_load_ps(output + 8);
+            __m256 out3 = _mm256_load_ps(output + 16);
 
-				__m256 in = _mm256_loadu_ps (input + shifts[inputIdx] + shift);
-				
-				__m256 multiplied = _mm256_mul_ps (in, factor);
-				
-				out = _mm256_add_ps (multiplied, out);
-			}
-			
-			_mm256_store_ps (output + shift, out);
-		}
+            // n is unlimited
+            // mult[inputIdx] is a constant in code
+            // inputIdx is a constant in code
+            // input also has a constant offset inside (should be changed)
+            for (int inputIdx = 0; inputIdx < n; inputIdx++) {
+                __m256 factor = _mm256_set1_ps(mult[inputIdx]);
+
+                __m256 in1 = _mm256_loadu_ps(input + shifts[inputIdx] + 0);
+                __m256 in2 = _mm256_loadu_ps(input + shifts[inputIdx] + 8);
+                __m256 in3 = _mm256_loadu_ps(input + shifts[inputIdx] + 16);
+
+                out1 = _mm256_add_ps(_mm256_mul_ps(in1, factor), out1);
+                out2 = _mm256_add_ps(_mm256_mul_ps(in2, factor), out2);
+                out3 = _mm256_add_ps(_mm256_mul_ps(in3, factor), out3);
+            }
+
+            _mm256_store_ps(output + 0, out1);
+            _mm256_store_ps(output + 8, out2);
+            _mm256_store_ps(output + 16, out3);
+        } else {
+            for (int i = 0; i < div8; i++) {
+                const int shift = i << 3;
+
+                __m256 out = _mm256_load_ps(output + shift);
+
+                // n is unlimited
+                // mult[inputIdx] is a constant in code
+                // inputIdx is a constant in code
+                // input also has a constant offset inside (should be changed)
+                for (int inputIdx = 0; inputIdx < n; inputIdx++) {
+                    __m256 factor = _mm256_set1_ps(mult[inputIdx]);
+
+                    __m256 in = _mm256_loadu_ps(input + shifts[inputIdx] + shift);
+
+                    __m256 multiplied = _mm256_mul_ps(in, factor);
+
+                    out = _mm256_add_ps(multiplied, out);
+                }
+
+                _mm256_store_ps(output + shift, out);
+            }
+        }
 	}
 	
 	template<> 
@@ -628,5 +653,4 @@ namespace caffe {
 	}
 }
 
-#undef DIRECT_SPARSE_CONVOLUTION_HPP_
 #endif

@@ -3,7 +3,7 @@
 
 namespace caffe {
 	
-	inline int roundToMultipleOf2(int value, int round) {
+	int roundToMultipleOf2(int value, int round) {
 		if (value % round == 0) {
 			return value;
 		} else {
@@ -17,22 +17,44 @@ namespace caffe {
 	template<> 
 	void processRowNF<float>(float* output, int resSizeX, const float* input, const int* inputShifts, const float* mult, int n) {
 		const int div8 = resSizeX / 8;
-		
-		for (int i = 0; i < div8; i++) {
-			const int shift = i << 3;
-			
-			__m256 out = _mm256_set1_ps(0.0f);
-			for (int inputIdx = 0; inputIdx < n; inputIdx++) {
-				__m256 factor = _mm256_set1_ps (mult[inputIdx]);
 
-				__m256 in = _mm256_loadu_ps (input + inputShifts[inputIdx] + shift);
-				
-				__m256 multiplied = _mm256_mul_ps (in, factor);
-				
-				out = _mm256_add_ps (multiplied, out);
+		if (div8 == 3) {
+			__m256 out1 = _mm256_set1_ps(0.0f);
+			__m256 out2 = _mm256_set1_ps(0.0f);
+			__m256 out3 = _mm256_set1_ps(0.0f);
+
+			for (int inputIdx = 0; inputIdx < n; inputIdx++) {
+				__m256 factor = _mm256_set1_ps(mult[inputIdx]);
+
+				__m256 in1 = _mm256_loadu_ps(input + inputShifts[inputIdx] + 0);
+				__m256 in2 = _mm256_loadu_ps(input + inputShifts[inputIdx] + 8);
+				__m256 in3 = _mm256_loadu_ps(input + inputShifts[inputIdx] + 16);
+
+				out1 = _mm256_add_ps(_mm256_mul_ps(in1, factor), out1);
+				out2 = _mm256_add_ps(_mm256_mul_ps(in2, factor), out2);
+				out3 = _mm256_add_ps(_mm256_mul_ps(in3, factor), out3);
 			}
-			
-			_mm256_store_ps (output + shift, out);
+
+			_mm256_store_ps(output, out1);
+			_mm256_store_ps(output + 8, out2);
+			_mm256_store_ps(output + 16, out3);
+		} else {
+			for (int i = 0; i < div8; i++) {
+				const int shift = i << 3;
+
+				__m256 out = _mm256_set1_ps(0.0f);
+				for (int inputIdx = 0; inputIdx < n; inputIdx++) {
+					__m256 factor = _mm256_set1_ps(mult[inputIdx]);
+
+					__m256 in = _mm256_loadu_ps(input + inputShifts[inputIdx] + shift);
+
+					__m256 multiplied = _mm256_mul_ps(in, factor);
+
+					out = _mm256_add_ps(multiplied, out);
+				}
+
+				_mm256_store_ps(output + shift, out);
+			}
 		}
 	}
 	
@@ -519,5 +541,4 @@ namespace caffe {
 	}
 }
 
-#undef CONVOLUTION_CODE_GENERATION_HPP_
 #endif // CONVOLUTION_CODE_GENERATION_HPP_

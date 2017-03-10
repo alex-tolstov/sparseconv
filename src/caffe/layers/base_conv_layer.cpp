@@ -11,6 +11,8 @@
 #include "caffe/util/direct_sparse_convolution_ex.hpp"
 #include "caffe/util/convolution_code_generation.hpp"
 #include "caffe/util/convolution_sparse_cache.hpp"
+#include "caffe/util/codegen_layer1.h"
+
 #ifdef MKL_USE
 #include "caffe/util/sparse_gemm_mkl.hpp"
 #endif
@@ -221,7 +223,7 @@ void BaseConvolutionLayer<Dtype>::forward_cpu_sparse_conv(
 //	LOG(INFO)<< "Channels: input=" << this->channels_ << ", output=" << this->num_output_;
 //	LOG(INFO)<< "Pad w = " << this->pad_w_ << ", pad h = " << this->pad_h_; 
 	
-	caffe::directConvolutionCentered(
+	caffe::directConvolutionWriteOutput1(
 		weightCompressed,
 		indicesX,
 		indicesRow,
@@ -258,22 +260,27 @@ void BaseConvolutionLayer<Dtype>::forward_cpu_sparse_conv_ch(
 //	LOG(INFO)<< "Output size (" << this->width_out_ << ", " << height_out_ << ")";
 //	LOG(INFO)<< "Channels: input=" << this->channels_ << ", output=" << this->num_output_;
 //	LOG(INFO)<< "Pad w = " << this->pad_w_ << ", pad h = " << this->pad_h_; 
-	
-	caffe::directConvolutionRegisters(
-		weightCompressed,
-		indicesX,
-		indicesChannel,
 
-		input,
-		this->channels_,
-		this->width_,
-		this->height_,
-		
-		output,
-		this->num_output_,
-		this->width_out_,
-		this->height_out_
-	);
+    if (this->num_output_) {
+        run1(input, this->width_, this->height_,
+             output, this->width_out_, this->width_out_, this->height_out_);
+    } else {
+        caffe::directConvolutionRegisters(
+                weightCompressed,
+                indicesX,
+                indicesChannel,
+
+                input,
+                this->channels_,
+                this->width_,
+                this->height_,
+
+                output,
+                this->num_output_,
+                this->width_out_,
+                this->height_out_
+        );
+    }
 }
 		
 

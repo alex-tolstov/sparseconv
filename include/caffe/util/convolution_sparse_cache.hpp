@@ -2,8 +2,11 @@
 #define CONVOLUTION_SPARSE_CACHE_HPP_
 
 #include "caffe/common.hpp"
+#include <immintrin.h>
 
 namespace caffe {
+
+	int roundToMultipleOf2(int value, int round);
 
 	template<typename Dtype> 
 	void processRoww(Dtype* output, int resSizeX, const Dtype* input, Dtype mult); 
@@ -318,6 +321,9 @@ namespace caffe {
 	}
 
 
+
+
+
 	template<typename Dtype>
 	void directConvolutionRegisters(
 			const Dtype *kernel,
@@ -335,7 +341,7 @@ namespace caffe {
 			const int resSizeY
 	) {
 		const int pitchResSizeX = roundToMultipleOf2(resSizeX, 8);
-        const int pitchResSizeY = roundToMultipleOf2(resSizeY, 8);
+		const int pitchResSizeY = roundToMultipleOf2(resSizeY, 8);
 
 		Dtype* alignedResult;
 		int status = posix_memalign((void**)&alignedResult, 32, (nOutputChannels * pitchResSizeX * pitchResSizeY) * sizeof(Dtype));
@@ -355,7 +361,7 @@ namespace caffe {
 					img,
 					nInputChannels,
 					imgSizeX,
-                    imgSizeY,
+					imgSizeY,
 					kernel,
 					cellInfo,
 					indicesChannels + nInputChannels * outputChannelIdx
@@ -465,5 +471,4 @@ namespace caffe {
 	
 }
 
-#undef CONVOLUTION_SPARSE_CACHE_HPP_
 #endif // CONVOLUTION_SPARSE_CACHE_HPP_
