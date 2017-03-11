@@ -13,6 +13,8 @@
 #include "caffe/util/convolution_sparse_cache.hpp"
 #include "caffe/util/codegen_layer1.h"
 #include "caffe/util/codegen_layers2.h"
+#include "caffe/util/codegen_trad.h"
+#include "caffe/util/codegen_trad_50.h"
 
 #ifdef MKL_USE
 #include "caffe/util/sparse_gemm_mkl.hpp"
@@ -263,10 +265,10 @@ void BaseConvolutionLayer<Dtype>::forward_cpu_sparse_conv_ch(
 //	LOG(INFO)<< "Pad w = " << this->pad_w_ << ", pad h = " << this->pad_h_; 
 
     if (this->num_output_ == 20) {
-        run1(input, this->width_, this->height_,
+        runOutputReusage(input, this->width_, this->height_,
              output, this->width_out_, this->width_out_, this->height_out_);
     } else {
-        run222(input, this->width_, this->height_, output, this->width_out_, this->width_out_, this->height_out_);
+        runOutputReusage50(input, this->width_, this->height_, output, this->width_out_, this->width_out_, this->height_out_);
         /*
         caffe::directConvolutionRegisters(
                 weightCompressed,

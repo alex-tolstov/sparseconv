@@ -183,14 +183,14 @@ void CConvolutionLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
 
 
 
-//  std::string code = caffe::directConvolutionRegistersCodegen(&nonZeroValues[0], &indicesX[0], &indicesChannel[0], this->kernel_h_, this->kernel_w_, this->channels_, this->num_output_);
-//  std::stringstream fileName;
-//  fileName << "/home/alex/paulsutter/code_" << this->num_output_;
-//    LOG(INFO) << "FileName=" << fileName.str();
-//  std::ofstream f;
-//    f.open(fileName.str().c_str());
-//    f << code;
-//    f.close();
+  std::string code = caffe::directConvolutionSparseOutputReusage(&nonZeroValues[0], &indicesX[0], &indicesChannel[0], this->kernel_h_, this->kernel_w_, this->channels_, this->num_output_);
+  std::stringstream fileName;
+  fileName << "/home/alex/paulsutter/codereusage_" << this->num_output_;
+    LOG(INFO) << "FileName=" << fileName.str();
+  std::ofstream f;
+    f.open(fileName.str().c_str());
+    f << code;
+    f.close();
 //
 
 

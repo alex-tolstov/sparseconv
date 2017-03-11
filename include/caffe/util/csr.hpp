@@ -80,6 +80,21 @@ namespace caffe {
 			const int nChannels = sizeX / channelSize;
 			for (int ch = 0; ch < nChannels; ch++) {
 				int countInTheChannel = 0;
+                for (int kCol = 0; kCol < kernelSizeX; kCol++) {
+                    for (int kRow = 0; kRow < kernelSizeY; kRow++) {
+                        if (kernel[y * sizeX + ch * channelSize + kRow * kernelSizeX + kCol] != 0) {
+                            values.push_back(kernel[y * sizeX + ch * channelSize + kRow * kernelSizeX + kCol]);
+
+                            int kx = kCol;
+                            int ky = kRow;
+
+                            cellInfo.push_back(kx + (ky << 8));
+
+                            countInTheChannel++;
+                        }
+                    }
+                }
+                /*
 				for (int i = 0; i < channelSize; i++) {
 					int x = ch * channelSize + i;
 					if (kernel[y * sizeX + x] != 0) {
@@ -94,6 +109,7 @@ namespace caffe {
 						countInTheChannel++;
 					}
 				}
+                */
 				lastIndex += countInTheChannel;
 				indicesChannel.push_back(lastIndex);
 			}
