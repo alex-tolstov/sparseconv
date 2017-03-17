@@ -15,6 +15,9 @@
 #include "caffe/util/codegen_layers2.h"
 #include "caffe/util/codegen_trad.h"
 #include "caffe/util/codegen_trad_50.h"
+#include "caffe/util/codegen_layer1_unfolded.h"
+#include "caffe/util/codegen_layer2_unfolded.h"
+ 
 
 #ifdef MKL_USE
 #include "caffe/util/sparse_gemm_mkl.hpp"
@@ -264,29 +267,34 @@ void BaseConvolutionLayer<Dtype>::forward_cpu_sparse_conv_ch(
 //	LOG(INFO)<< "Channels: input=" << this->channels_ << ", output=" << this->num_output_;
 //	LOG(INFO)<< "Pad w = " << this->pad_w_ << ", pad h = " << this->pad_h_; 
 
+
+
+
+
     if (this->num_output_ == 20) {
-        runOutputReusage(input, this->width_, this->height_,
+        run20Unfolded(input, this->width_, this->height_,
              output, this->width_out_, this->width_out_, this->height_out_);
     } else {
-        runOutputReusage50(input, this->width_, this->height_, output, this->width_out_, this->width_out_, this->height_out_);
-        /*
-        caffe::directConvolutionRegisters(
-                weightCompressed,
-                indicesX,
-                indicesChannel,
-
-                input,
-                this->channels_,
-                this->width_,
-                this->height_,
-
-                output,
-                this->num_output_,
-                this->width_out_,
-                this->height_out_
-        );
-         */
+        run50Unfolded(input, this->width_, this->height_, output, this->width_out_, this->width_out_, this->height_out_);
+//        caffe::directConvolutionRegisters(
+//                weightCompressed,
+//                indicesX,
+//                indicesChannel,
+//
+//                input,
+//                this->channels_,
+//                this->width_,
+//                this->height_,
+//
+//                output,
+//                this->num_output_,
+//                this->width_out_,
+//                this->height_out_
+//        );
     }
+
+
+
 }
 		
 

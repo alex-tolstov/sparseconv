@@ -23,6 +23,7 @@ template<> void runOutputReusage<float>(const float *input, const int imgSizeX, 
                 __m256 out = _mm256_setzero_ps();
                 {
                     const int inputChannelIdx = 0;
+                    const int initialOffset = imgSizeX * (imgSizeY * inputChannelIdx + y) + shift;
                 }
                 _mm256_storeu_ps(output + res_off + shift + y * outputPitchX, out);
             }
@@ -37,18 +38,19 @@ template<> void runOutputReusage<float>(const float *input, const int imgSizeX, 
                 __m256 out = _mm256_setzero_ps();
                 {
                     const int inputChannelIdx = 0;
+                    const int initialOffset = imgSizeX * (imgSizeY * inputChannelIdx + y) + shift;
                     {__m256 factor = _mm256_set1_ps(-0.391116);
                         const int kernelCol=1;
                         const int kernelRow=1;
-                        const int inOffset = imgSizeX * (imgSizeY * inputChannelIdx + kernelRow + y) + kernelCol;
-                        __m256 in = _mm256_loadu_ps(input + shift + inOffset);
+                        const int inOffset = initialOffset + imgSizeX * kernelRow + kernelCol;
+                        __m256 in = _mm256_loadu_ps(input + inOffset);
                         __m256 multiplied = _mm256_mul_ps(in, factor);
                         out = _mm256_add_ps(multiplied, out);}
                     {__m256 factor = _mm256_set1_ps(0.43902);
                         const int kernelCol=2;
                         const int kernelRow=4;
-                        const int inOffset = imgSizeX * (imgSizeY * inputChannelIdx + kernelRow + y) + kernelCol;
-                        __m256 in = _mm256_loadu_ps(input + shift + inOffset);
+                        const int inOffset = initialOffset + imgSizeX * kernelRow + kernelCol;
+                        __m256 in = _mm256_loadu_ps(input + inOffset);
                         __m256 multiplied = _mm256_mul_ps(in, factor);
                         out = _mm256_add_ps(multiplied, out);}
                 }
@@ -65,25 +67,26 @@ template<> void runOutputReusage<float>(const float *input, const int imgSizeX, 
                 __m256 out = _mm256_setzero_ps();
                 {
                     const int inputChannelIdx = 0;
+                    const int initialOffset = imgSizeX * (imgSizeY * inputChannelIdx + y) + shift;
                     {__m256 factor = _mm256_set1_ps(0.474224);
                         const int kernelCol=1;
                         const int kernelRow=1;
-                        const int inOffset = imgSizeX * (imgSizeY * inputChannelIdx + kernelRow + y) + kernelCol;
-                        __m256 in = _mm256_loadu_ps(input + shift + inOffset);
+                        const int inOffset = initialOffset + imgSizeX * kernelRow + kernelCol;
+                        __m256 in = _mm256_loadu_ps(input + inOffset);
                         __m256 multiplied = _mm256_mul_ps(in, factor);
                         out = _mm256_add_ps(multiplied, out);}
                     {__m256 factor = _mm256_set1_ps(0.56209);
                         const int kernelCol=2;
                         const int kernelRow=1;
-                        const int inOffset = imgSizeX * (imgSizeY * inputChannelIdx + kernelRow + y) + kernelCol;
-                        __m256 in = _mm256_loadu_ps(input + shift + inOffset);
+                        const int inOffset = initialOffset + imgSizeX * kernelRow + kernelCol;
+                        __m256 in = _mm256_loadu_ps(input + inOffset);
                         __m256 multiplied = _mm256_mul_ps(in, factor);
                         out = _mm256_add_ps(multiplied, out);}
                     {__m256 factor = _mm256_set1_ps(0.512386);
                         const int kernelCol=4;
                         const int kernelRow=2;
-                        const int inOffset = imgSizeX * (imgSizeY * inputChannelIdx + kernelRow + y) + kernelCol;
-                        __m256 in = _mm256_loadu_ps(input + shift + inOffset);
+                        const int inOffset = initialOffset + imgSizeX * kernelRow + kernelCol;
+                        __m256 in = _mm256_loadu_ps(input + inOffset);
                         __m256 multiplied = _mm256_mul_ps(in, factor);
                         out = _mm256_add_ps(multiplied, out);}
                 }
@@ -100,6 +103,7 @@ template<> void runOutputReusage<float>(const float *input, const int imgSizeX, 
                 __m256 out = _mm256_setzero_ps();
                 {
                     const int inputChannelIdx = 0;
+                    const int initialOffset = imgSizeX * (imgSizeY * inputChannelIdx + y) + shift;
                 }
                 _mm256_storeu_ps(output + res_off + shift + y * outputPitchX, out);
             }
@@ -114,6 +118,7 @@ template<> void runOutputReusage<float>(const float *input, const int imgSizeX, 
                 __m256 out = _mm256_setzero_ps();
                 {
                     const int inputChannelIdx = 0;
+                    const int initialOffset = imgSizeX * (imgSizeY * inputChannelIdx + y) + shift;
                 }
                 _mm256_storeu_ps(output + res_off + shift + y * outputPitchX, out);
             }
@@ -128,6 +133,7 @@ template<> void runOutputReusage<float>(const float *input, const int imgSizeX, 
                 __m256 out = _mm256_setzero_ps();
                 {
                     const int inputChannelIdx = 0;
+                    const int initialOffset = imgSizeX * (imgSizeY * inputChannelIdx + y) + shift;
                 }
                 _mm256_storeu_ps(output + res_off + shift + y * outputPitchX, out);
             }
@@ -142,6 +148,7 @@ template<> void runOutputReusage<float>(const float *input, const int imgSizeX, 
                 __m256 out = _mm256_setzero_ps();
                 {
                     const int inputChannelIdx = 0;
+                    const int initialOffset = imgSizeX * (imgSizeY * inputChannelIdx + y) + shift;
                 }
                 _mm256_storeu_ps(output + res_off + shift + y * outputPitchX, out);
             }
@@ -156,67 +163,68 @@ template<> void runOutputReusage<float>(const float *input, const int imgSizeX, 
                 __m256 out = _mm256_setzero_ps();
                 {
                     const int inputChannelIdx = 0;
-                    {__m256 factor = _mm256_set1_ps(0.54322);
-                        const int kernelCol=1;
-                        const int kernelRow=1;
-                        const int inOffset = imgSizeX * (imgSizeY * inputChannelIdx + kernelRow + y) + kernelCol;
-                        __m256 in = _mm256_loadu_ps(input + shift + inOffset);
-                        __m256 multiplied = _mm256_mul_ps(in, factor);
-                        out = _mm256_add_ps(multiplied, out);}
-                    {__m256 factor = _mm256_set1_ps(0.735526);
-                        const int kernelCol=1;
-                        const int kernelRow=2;
-                        const int inOffset = imgSizeX * (imgSizeY * inputChannelIdx + kernelRow + y) + kernelCol;
-                        __m256 in = _mm256_loadu_ps(input + shift + inOffset);
-                        __m256 multiplied = _mm256_mul_ps(in, factor);
-                        out = _mm256_add_ps(multiplied, out);}
-                    {__m256 factor = _mm256_set1_ps(0.694164);
-                        const int kernelCol=1;
-                        const int kernelRow=3;
-                        const int inOffset = imgSizeX * (imgSizeY * inputChannelIdx + kernelRow + y) + kernelCol;
-                        __m256 in = _mm256_loadu_ps(input + shift + inOffset);
-                        __m256 multiplied = _mm256_mul_ps(in, factor);
-                        out = _mm256_add_ps(multiplied, out);}
+                    const int initialOffset = imgSizeX * (imgSizeY * inputChannelIdx + y) + shift;
                     {__m256 factor = _mm256_set1_ps(0.400998);
                         const int kernelCol=2;
                         const int kernelRow=0;
-                        const int inOffset = imgSizeX * (imgSizeY * inputChannelIdx + kernelRow + y) + kernelCol;
-                        __m256 in = _mm256_loadu_ps(input + shift + inOffset);
+                        const int inOffset = initialOffset + imgSizeX * kernelRow + kernelCol;
+                        __m256 in = _mm256_loadu_ps(input + inOffset);
+                        __m256 multiplied = _mm256_mul_ps(in, factor);
+                        out = _mm256_add_ps(multiplied, out);}
+                    {__m256 factor = _mm256_set1_ps(0.54322);
+                        const int kernelCol=1;
+                        const int kernelRow=1;
+                        const int inOffset = initialOffset + imgSizeX * kernelRow + kernelCol;
+                        __m256 in = _mm256_loadu_ps(input + inOffset);
                         __m256 multiplied = _mm256_mul_ps(in, factor);
                         out = _mm256_add_ps(multiplied, out);}
                     {__m256 factor = _mm256_set1_ps(0.441568);
                         const int kernelCol=2;
                         const int kernelRow=1;
-                        const int inOffset = imgSizeX * (imgSizeY * inputChannelIdx + kernelRow + y) + kernelCol;
-                        __m256 in = _mm256_loadu_ps(input + shift + inOffset);
+                        const int inOffset = initialOffset + imgSizeX * kernelRow + kernelCol;
+                        __m256 in = _mm256_loadu_ps(input + inOffset);
                         __m256 multiplied = _mm256_mul_ps(in, factor);
                         out = _mm256_add_ps(multiplied, out);}
                     {__m256 factor = _mm256_set1_ps(-0.551391);
                         const int kernelCol=4;
                         const int kernelRow=1;
-                        const int inOffset = imgSizeX * (imgSizeY * inputChannelIdx + kernelRow + y) + kernelCol;
-                        __m256 in = _mm256_loadu_ps(input + shift + inOffset);
+                        const int inOffset = initialOffset + imgSizeX * kernelRow + kernelCol;
+                        __m256 in = _mm256_loadu_ps(input + inOffset);
+                        __m256 multiplied = _mm256_mul_ps(in, factor);
+                        out = _mm256_add_ps(multiplied, out);}
+                    {__m256 factor = _mm256_set1_ps(0.735526);
+                        const int kernelCol=1;
+                        const int kernelRow=2;
+                        const int inOffset = initialOffset + imgSizeX * kernelRow + kernelCol;
+                        __m256 in = _mm256_loadu_ps(input + inOffset);
                         __m256 multiplied = _mm256_mul_ps(in, factor);
                         out = _mm256_add_ps(multiplied, out);}
                     {__m256 factor = _mm256_set1_ps(-0.801157);
                         const int kernelCol=4;
                         const int kernelRow=2;
-                        const int inOffset = imgSizeX * (imgSizeY * inputChannelIdx + kernelRow + y) + kernelCol;
-                        __m256 in = _mm256_loadu_ps(input + shift + inOffset);
+                        const int inOffset = initialOffset + imgSizeX * kernelRow + kernelCol;
+                        __m256 in = _mm256_loadu_ps(input + inOffset);
+                        __m256 multiplied = _mm256_mul_ps(in, factor);
+                        out = _mm256_add_ps(multiplied, out);}
+                    {__m256 factor = _mm256_set1_ps(0.694164);
+                        const int kernelCol=1;
+                        const int kernelRow=3;
+                        const int inOffset = initialOffset + imgSizeX * kernelRow + kernelCol;
+                        __m256 in = _mm256_loadu_ps(input + inOffset);
                         __m256 multiplied = _mm256_mul_ps(in, factor);
                         out = _mm256_add_ps(multiplied, out);}
                     {__m256 factor = _mm256_set1_ps(-0.77963);
                         const int kernelCol=4;
                         const int kernelRow=3;
-                        const int inOffset = imgSizeX * (imgSizeY * inputChannelIdx + kernelRow + y) + kernelCol;
-                        __m256 in = _mm256_loadu_ps(input + shift + inOffset);
+                        const int inOffset = initialOffset + imgSizeX * kernelRow + kernelCol;
+                        __m256 in = _mm256_loadu_ps(input + inOffset);
                         __m256 multiplied = _mm256_mul_ps(in, factor);
                         out = _mm256_add_ps(multiplied, out);}
                     {__m256 factor = _mm256_set1_ps(-0.397199);
                         const int kernelCol=4;
                         const int kernelRow=4;
-                        const int inOffset = imgSizeX * (imgSizeY * inputChannelIdx + kernelRow + y) + kernelCol;
-                        __m256 in = _mm256_loadu_ps(input + shift + inOffset);
+                        const int inOffset = initialOffset + imgSizeX * kernelRow + kernelCol;
+                        __m256 in = _mm256_loadu_ps(input + inOffset);
                         __m256 multiplied = _mm256_mul_ps(in, factor);
                         out = _mm256_add_ps(multiplied, out);}
                 }
@@ -233,6 +241,7 @@ template<> void runOutputReusage<float>(const float *input, const int imgSizeX, 
                 __m256 out = _mm256_setzero_ps();
                 {
                     const int inputChannelIdx = 0;
+                    const int initialOffset = imgSizeX * (imgSizeY * inputChannelIdx + y) + shift;
                 }
                 _mm256_storeu_ps(output + res_off + shift + y * outputPitchX, out);
             }
@@ -247,74 +256,75 @@ template<> void runOutputReusage<float>(const float *input, const int imgSizeX, 
                 __m256 out = _mm256_setzero_ps();
                 {
                     const int inputChannelIdx = 0;
+                    const int initialOffset = imgSizeX * (imgSizeY * inputChannelIdx + y) + shift;
+                    {__m256 factor = _mm256_set1_ps(0.434259);
+                        const int kernelCol=4;
+                        const int kernelRow=0;
+                        const int inOffset = initialOffset + imgSizeX * kernelRow + kernelCol;
+                        __m256 in = _mm256_loadu_ps(input + inOffset);
+                        __m256 multiplied = _mm256_mul_ps(in, factor);
+                        out = _mm256_add_ps(multiplied, out);}
                     {__m256 factor = _mm256_set1_ps(0.559004);
                         const int kernelCol=0;
                         const int kernelRow=1;
-                        const int inOffset = imgSizeX * (imgSizeY * inputChannelIdx + kernelRow + y) + kernelCol;
-                        __m256 in = _mm256_loadu_ps(input + shift + inOffset);
-                        __m256 multiplied = _mm256_mul_ps(in, factor);
-                        out = _mm256_add_ps(multiplied, out);}
-                    {__m256 factor = _mm256_set1_ps(-0.546822);
-                        const int kernelCol=0;
-                        const int kernelRow=4;
-                        const int inOffset = imgSizeX * (imgSizeY * inputChannelIdx + kernelRow + y) + kernelCol;
-                        __m256 in = _mm256_loadu_ps(input + shift + inOffset);
-                        __m256 multiplied = _mm256_mul_ps(in, factor);
-                        out = _mm256_add_ps(multiplied, out);}
-                    {__m256 factor = _mm256_set1_ps(-0.591119);
-                        const int kernelCol=1;
-                        const int kernelRow=4;
-                        const int inOffset = imgSizeX * (imgSizeY * inputChannelIdx + kernelRow + y) + kernelCol;
-                        __m256 in = _mm256_loadu_ps(input + shift + inOffset);
+                        const int inOffset = initialOffset + imgSizeX * kernelRow + kernelCol;
+                        __m256 in = _mm256_loadu_ps(input + inOffset);
                         __m256 multiplied = _mm256_mul_ps(in, factor);
                         out = _mm256_add_ps(multiplied, out);}
                     {__m256 factor = _mm256_set1_ps(0.474154);
                         const int kernelCol=2;
                         const int kernelRow=1;
-                        const int inOffset = imgSizeX * (imgSizeY * inputChannelIdx + kernelRow + y) + kernelCol;
-                        __m256 in = _mm256_loadu_ps(input + shift + inOffset);
-                        __m256 multiplied = _mm256_mul_ps(in, factor);
-                        out = _mm256_add_ps(multiplied, out);}
-                    {__m256 factor = _mm256_set1_ps(-0.763197);
-                        const int kernelCol=2;
-                        const int kernelRow=4;
-                        const int inOffset = imgSizeX * (imgSizeY * inputChannelIdx + kernelRow + y) + kernelCol;
-                        __m256 in = _mm256_loadu_ps(input + shift + inOffset);
+                        const int inOffset = initialOffset + imgSizeX * kernelRow + kernelCol;
+                        __m256 in = _mm256_loadu_ps(input + inOffset);
                         __m256 multiplied = _mm256_mul_ps(in, factor);
                         out = _mm256_add_ps(multiplied, out);}
                     {__m256 factor = _mm256_set1_ps(0.7786);
                         const int kernelCol=3;
                         const int kernelRow=1;
-                        const int inOffset = imgSizeX * (imgSizeY * inputChannelIdx + kernelRow + y) + kernelCol;
-                        __m256 in = _mm256_loadu_ps(input + shift + inOffset);
-                        __m256 multiplied = _mm256_mul_ps(in, factor);
-                        out = _mm256_add_ps(multiplied, out);}
-                    {__m256 factor = _mm256_set1_ps(-0.530108);
-                        const int kernelCol=3;
-                        const int kernelRow=3;
-                        const int inOffset = imgSizeX * (imgSizeY * inputChannelIdx + kernelRow + y) + kernelCol;
-                        __m256 in = _mm256_loadu_ps(input + shift + inOffset);
-                        __m256 multiplied = _mm256_mul_ps(in, factor);
-                        out = _mm256_add_ps(multiplied, out);}
-                    {__m256 factor = _mm256_set1_ps(-0.625386);
-                        const int kernelCol=3;
-                        const int kernelRow=4;
-                        const int inOffset = imgSizeX * (imgSizeY * inputChannelIdx + kernelRow + y) + kernelCol;
-                        __m256 in = _mm256_loadu_ps(input + shift + inOffset);
-                        __m256 multiplied = _mm256_mul_ps(in, factor);
-                        out = _mm256_add_ps(multiplied, out);}
-                    {__m256 factor = _mm256_set1_ps(0.434259);
-                        const int kernelCol=4;
-                        const int kernelRow=0;
-                        const int inOffset = imgSizeX * (imgSizeY * inputChannelIdx + kernelRow + y) + kernelCol;
-                        __m256 in = _mm256_loadu_ps(input + shift + inOffset);
+                        const int inOffset = initialOffset + imgSizeX * kernelRow + kernelCol;
+                        __m256 in = _mm256_loadu_ps(input + inOffset);
                         __m256 multiplied = _mm256_mul_ps(in, factor);
                         out = _mm256_add_ps(multiplied, out);}
                     {__m256 factor = _mm256_set1_ps(0.78912);
                         const int kernelCol=4;
                         const int kernelRow=1;
-                        const int inOffset = imgSizeX * (imgSizeY * inputChannelIdx + kernelRow + y) + kernelCol;
-                        __m256 in = _mm256_loadu_ps(input + shift + inOffset);
+                        const int inOffset = initialOffset + imgSizeX * kernelRow + kernelCol;
+                        __m256 in = _mm256_loadu_ps(input + inOffset);
+                        __m256 multiplied = _mm256_mul_ps(in, factor);
+                        out = _mm256_add_ps(multiplied, out);}
+                    {__m256 factor = _mm256_set1_ps(-0.530108);
+                        const int kernelCol=3;
+                        const int kernelRow=3;
+                        const int inOffset = initialOffset + imgSizeX * kernelRow + kernelCol;
+                        __m256 in = _mm256_loadu_ps(input + inOffset);
+                        __m256 multiplied = _mm256_mul_ps(in, factor);
+                        out = _mm256_add_ps(multiplied, out);}
+                    {__m256 factor = _mm256_set1_ps(-0.546822);
+                        const int kernelCol=0;
+                        const int kernelRow=4;
+                        const int inOffset = initialOffset + imgSizeX * kernelRow + kernelCol;
+                        __m256 in = _mm256_loadu_ps(input + inOffset);
+                        __m256 multiplied = _mm256_mul_ps(in, factor);
+                        out = _mm256_add_ps(multiplied, out);}
+                    {__m256 factor = _mm256_set1_ps(-0.591119);
+                        const int kernelCol=1;
+                        const int kernelRow=4;
+                        const int inOffset = initialOffset + imgSizeX * kernelRow + kernelCol;
+                        __m256 in = _mm256_loadu_ps(input + inOffset);
+                        __m256 multiplied = _mm256_mul_ps(in, factor);
+                        out = _mm256_add_ps(multiplied, out);}
+                    {__m256 factor = _mm256_set1_ps(-0.763197);
+                        const int kernelCol=2;
+                        const int kernelRow=4;
+                        const int inOffset = initialOffset + imgSizeX * kernelRow + kernelCol;
+                        __m256 in = _mm256_loadu_ps(input + inOffset);
+                        __m256 multiplied = _mm256_mul_ps(in, factor);
+                        out = _mm256_add_ps(multiplied, out);}
+                    {__m256 factor = _mm256_set1_ps(-0.625386);
+                        const int kernelCol=3;
+                        const int kernelRow=4;
+                        const int inOffset = initialOffset + imgSizeX * kernelRow + kernelCol;
+                        __m256 in = _mm256_loadu_ps(input + inOffset);
                         __m256 multiplied = _mm256_mul_ps(in, factor);
                         out = _mm256_add_ps(multiplied, out);}
                 }
@@ -331,25 +341,26 @@ template<> void runOutputReusage<float>(const float *input, const int imgSizeX, 
                 __m256 out = _mm256_setzero_ps();
                 {
                     const int inputChannelIdx = 0;
+                    const int initialOffset = imgSizeX * (imgSizeY * inputChannelIdx + y) + shift;
                     {__m256 factor = _mm256_set1_ps(0.612788);
                         const int kernelCol=1;
                         const int kernelRow=2;
-                        const int inOffset = imgSizeX * (imgSizeY * inputChannelIdx + kernelRow + y) + kernelCol;
-                        __m256 in = _mm256_loadu_ps(input + shift + inOffset);
+                        const int inOffset = initialOffset + imgSizeX * kernelRow + kernelCol;
+                        __m256 in = _mm256_loadu_ps(input + inOffset);
                         __m256 multiplied = _mm256_mul_ps(in, factor);
                         out = _mm256_add_ps(multiplied, out);}
                     {__m256 factor = _mm256_set1_ps(0.601036);
                         const int kernelCol=2;
                         const int kernelRow=2;
-                        const int inOffset = imgSizeX * (imgSizeY * inputChannelIdx + kernelRow + y) + kernelCol;
-                        __m256 in = _mm256_loadu_ps(input + shift + inOffset);
+                        const int inOffset = initialOffset + imgSizeX * kernelRow + kernelCol;
+                        __m256 in = _mm256_loadu_ps(input + inOffset);
                         __m256 multiplied = _mm256_mul_ps(in, factor);
                         out = _mm256_add_ps(multiplied, out);}
                     {__m256 factor = _mm256_set1_ps(0.416437);
                         const int kernelCol=2;
                         const int kernelRow=3;
-                        const int inOffset = imgSizeX * (imgSizeY * inputChannelIdx + kernelRow + y) + kernelCol;
-                        __m256 in = _mm256_loadu_ps(input + shift + inOffset);
+                        const int inOffset = initialOffset + imgSizeX * kernelRow + kernelCol;
+                        __m256 in = _mm256_loadu_ps(input + inOffset);
                         __m256 multiplied = _mm256_mul_ps(in, factor);
                         out = _mm256_add_ps(multiplied, out);}
                 }
@@ -366,6 +377,7 @@ template<> void runOutputReusage<float>(const float *input, const int imgSizeX, 
                 __m256 out = _mm256_setzero_ps();
                 {
                     const int inputChannelIdx = 0;
+                    const int initialOffset = imgSizeX * (imgSizeY * inputChannelIdx + y) + shift;
                 }
                 _mm256_storeu_ps(output + res_off + shift + y * outputPitchX, out);
             }
@@ -380,6 +392,7 @@ template<> void runOutputReusage<float>(const float *input, const int imgSizeX, 
                 __m256 out = _mm256_setzero_ps();
                 {
                     const int inputChannelIdx = 0;
+                    const int initialOffset = imgSizeX * (imgSizeY * inputChannelIdx + y) + shift;
                 }
                 _mm256_storeu_ps(output + res_off + shift + y * outputPitchX, out);
             }
@@ -394,6 +407,7 @@ template<> void runOutputReusage<float>(const float *input, const int imgSizeX, 
                 __m256 out = _mm256_setzero_ps();
                 {
                     const int inputChannelIdx = 0;
+                    const int initialOffset = imgSizeX * (imgSizeY * inputChannelIdx + y) + shift;
                 }
                 _mm256_storeu_ps(output + res_off + shift + y * outputPitchX, out);
             }
@@ -408,53 +422,54 @@ template<> void runOutputReusage<float>(const float *input, const int imgSizeX, 
                 __m256 out = _mm256_setzero_ps();
                 {
                     const int inputChannelIdx = 0;
+                    const int initialOffset = imgSizeX * (imgSizeY * inputChannelIdx + y) + shift;
+                    {__m256 factor = _mm256_set1_ps(-0.645686);
+                        const int kernelCol=2;
+                        const int kernelRow=0;
+                        const int inOffset = initialOffset + imgSizeX * kernelRow + kernelCol;
+                        __m256 in = _mm256_loadu_ps(input + inOffset);
+                        __m256 multiplied = _mm256_mul_ps(in, factor);
+                        out = _mm256_add_ps(multiplied, out);}
                     {__m256 factor = _mm256_set1_ps(-0.585144);
                         const int kernelCol=0;
                         const int kernelRow=1;
-                        const int inOffset = imgSizeX * (imgSizeY * inputChannelIdx + kernelRow + y) + kernelCol;
-                        __m256 in = _mm256_loadu_ps(input + shift + inOffset);
-                        __m256 multiplied = _mm256_mul_ps(in, factor);
-                        out = _mm256_add_ps(multiplied, out);}
-                    {__m256 factor = _mm256_set1_ps(-0.555653);
-                        const int kernelCol=0;
-                        const int kernelRow=2;
-                        const int inOffset = imgSizeX * (imgSizeY * inputChannelIdx + kernelRow + y) + kernelCol;
-                        __m256 in = _mm256_loadu_ps(input + shift + inOffset);
+                        const int inOffset = initialOffset + imgSizeX * kernelRow + kernelCol;
+                        __m256 in = _mm256_loadu_ps(input + inOffset);
                         __m256 multiplied = _mm256_mul_ps(in, factor);
                         out = _mm256_add_ps(multiplied, out);}
                     {__m256 factor = _mm256_set1_ps(-0.793905);
                         const int kernelCol=1;
                         const int kernelRow=1;
-                        const int inOffset = imgSizeX * (imgSizeY * inputChannelIdx + kernelRow + y) + kernelCol;
-                        __m256 in = _mm256_loadu_ps(input + shift + inOffset);
-                        __m256 multiplied = _mm256_mul_ps(in, factor);
-                        out = _mm256_add_ps(multiplied, out);}
-                    {__m256 factor = _mm256_set1_ps(0.44683);
-                        const int kernelCol=1;
-                        const int kernelRow=3;
-                        const int inOffset = imgSizeX * (imgSizeY * inputChannelIdx + kernelRow + y) + kernelCol;
-                        __m256 in = _mm256_loadu_ps(input + shift + inOffset);
-                        __m256 multiplied = _mm256_mul_ps(in, factor);
-                        out = _mm256_add_ps(multiplied, out);}
-                    {__m256 factor = _mm256_set1_ps(-0.645686);
-                        const int kernelCol=2;
-                        const int kernelRow=0;
-                        const int inOffset = imgSizeX * (imgSizeY * inputChannelIdx + kernelRow + y) + kernelCol;
-                        __m256 in = _mm256_loadu_ps(input + shift + inOffset);
+                        const int inOffset = initialOffset + imgSizeX * kernelRow + kernelCol;
+                        __m256 in = _mm256_loadu_ps(input + inOffset);
                         __m256 multiplied = _mm256_mul_ps(in, factor);
                         out = _mm256_add_ps(multiplied, out);}
                     {__m256 factor = _mm256_set1_ps(-0.42832);
                         const int kernelCol=2;
                         const int kernelRow=1;
-                        const int inOffset = imgSizeX * (imgSizeY * inputChannelIdx + kernelRow + y) + kernelCol;
-                        __m256 in = _mm256_loadu_ps(input + shift + inOffset);
+                        const int inOffset = initialOffset + imgSizeX * kernelRow + kernelCol;
+                        __m256 in = _mm256_loadu_ps(input + inOffset);
+                        __m256 multiplied = _mm256_mul_ps(in, factor);
+                        out = _mm256_add_ps(multiplied, out);}
+                    {__m256 factor = _mm256_set1_ps(-0.555653);
+                        const int kernelCol=0;
+                        const int kernelRow=2;
+                        const int inOffset = initialOffset + imgSizeX * kernelRow + kernelCol;
+                        __m256 in = _mm256_loadu_ps(input + inOffset);
+                        __m256 multiplied = _mm256_mul_ps(in, factor);
+                        out = _mm256_add_ps(multiplied, out);}
+                    {__m256 factor = _mm256_set1_ps(0.44683);
+                        const int kernelCol=1;
+                        const int kernelRow=3;
+                        const int inOffset = initialOffset + imgSizeX * kernelRow + kernelCol;
+                        __m256 in = _mm256_loadu_ps(input + inOffset);
                         __m256 multiplied = _mm256_mul_ps(in, factor);
                         out = _mm256_add_ps(multiplied, out);}
                     {__m256 factor = _mm256_set1_ps(0.444221);
                         const int kernelCol=2;
                         const int kernelRow=3;
-                        const int inOffset = imgSizeX * (imgSizeY * inputChannelIdx + kernelRow + y) + kernelCol;
-                        __m256 in = _mm256_loadu_ps(input + shift + inOffset);
+                        const int inOffset = initialOffset + imgSizeX * kernelRow + kernelCol;
+                        __m256 in = _mm256_loadu_ps(input + inOffset);
                         __m256 multiplied = _mm256_mul_ps(in, factor);
                         out = _mm256_add_ps(multiplied, out);}
                 }
@@ -471,6 +486,7 @@ template<> void runOutputReusage<float>(const float *input, const int imgSizeX, 
                 __m256 out = _mm256_setzero_ps();
                 {
                     const int inputChannelIdx = 0;
+                    const int initialOffset = imgSizeX * (imgSizeY * inputChannelIdx + y) + shift;
                 }
                 _mm256_storeu_ps(output + res_off + shift + y * outputPitchX, out);
             }
@@ -485,102 +501,103 @@ template<> void runOutputReusage<float>(const float *input, const int imgSizeX, 
                 __m256 out = _mm256_setzero_ps();
                 {
                     const int inputChannelIdx = 0;
-                    {__m256 factor = _mm256_set1_ps(0.527516);
-                        const int kernelCol=0;
-                        const int kernelRow=2;
-                        const int inOffset = imgSizeX * (imgSizeY * inputChannelIdx + kernelRow + y) + kernelCol;
-                        __m256 in = _mm256_loadu_ps(input + shift + inOffset);
-                        __m256 multiplied = _mm256_mul_ps(in, factor);
-                        out = _mm256_add_ps(multiplied, out);}
-                    {__m256 factor = _mm256_set1_ps(0.412613);
-                        const int kernelCol=0;
-                        const int kernelRow=3;
-                        const int inOffset = imgSizeX * (imgSizeY * inputChannelIdx + kernelRow + y) + kernelCol;
-                        __m256 in = _mm256_loadu_ps(input + shift + inOffset);
-                        __m256 multiplied = _mm256_mul_ps(in, factor);
-                        out = _mm256_add_ps(multiplied, out);}
-                    {__m256 factor = _mm256_set1_ps(0.403925);
-                        const int kernelCol=1;
-                        const int kernelRow=2;
-                        const int inOffset = imgSizeX * (imgSizeY * inputChannelIdx + kernelRow + y) + kernelCol;
-                        __m256 in = _mm256_loadu_ps(input + shift + inOffset);
-                        __m256 multiplied = _mm256_mul_ps(in, factor);
-                        out = _mm256_add_ps(multiplied, out);}
-                    {__m256 factor = _mm256_set1_ps(0.903525);
-                        const int kernelCol=1;
-                        const int kernelRow=3;
-                        const int inOffset = imgSizeX * (imgSizeY * inputChannelIdx + kernelRow + y) + kernelCol;
-                        __m256 in = _mm256_loadu_ps(input + shift + inOffset);
-                        __m256 multiplied = _mm256_mul_ps(in, factor);
-                        out = _mm256_add_ps(multiplied, out);}
-                    {__m256 factor = _mm256_set1_ps(0.426623);
-                        const int kernelCol=1;
-                        const int kernelRow=4;
-                        const int inOffset = imgSizeX * (imgSizeY * inputChannelIdx + kernelRow + y) + kernelCol;
-                        __m256 in = _mm256_loadu_ps(input + shift + inOffset);
-                        __m256 multiplied = _mm256_mul_ps(in, factor);
-                        out = _mm256_add_ps(multiplied, out);}
+                    const int initialOffset = imgSizeX * (imgSizeY * inputChannelIdx + y) + shift;
                     {__m256 factor = _mm256_set1_ps(-0.42673);
                         const int kernelCol=2;
                         const int kernelRow=0;
-                        const int inOffset = imgSizeX * (imgSizeY * inputChannelIdx + kernelRow + y) + kernelCol;
-                        __m256 in = _mm256_loadu_ps(input + shift + inOffset);
+                        const int inOffset = initialOffset + imgSizeX * kernelRow + kernelCol;
+                        __m256 in = _mm256_loadu_ps(input + inOffset);
                         __m256 multiplied = _mm256_mul_ps(in, factor);
                         out = _mm256_add_ps(multiplied, out);}
                     {__m256 factor = _mm256_set1_ps(-0.842605);
                         const int kernelCol=2;
                         const int kernelRow=1;
-                        const int inOffset = imgSizeX * (imgSizeY * inputChannelIdx + kernelRow + y) + kernelCol;
-                        __m256 in = _mm256_loadu_ps(input + shift + inOffset);
-                        __m256 multiplied = _mm256_mul_ps(in, factor);
-                        out = _mm256_add_ps(multiplied, out);}
-                    {__m256 factor = _mm256_set1_ps(-0.384715);
-                        const int kernelCol=2;
-                        const int kernelRow=2;
-                        const int inOffset = imgSizeX * (imgSizeY * inputChannelIdx + kernelRow + y) + kernelCol;
-                        __m256 in = _mm256_loadu_ps(input + shift + inOffset);
-                        __m256 multiplied = _mm256_mul_ps(in, factor);
-                        out = _mm256_add_ps(multiplied, out);}
-                    {__m256 factor = _mm256_set1_ps(0.495898);
-                        const int kernelCol=2;
-                        const int kernelRow=3;
-                        const int inOffset = imgSizeX * (imgSizeY * inputChannelIdx + kernelRow + y) + kernelCol;
-                        __m256 in = _mm256_loadu_ps(input + shift + inOffset);
-                        __m256 multiplied = _mm256_mul_ps(in, factor);
-                        out = _mm256_add_ps(multiplied, out);}
-                    {__m256 factor = _mm256_set1_ps(0.795484);
-                        const int kernelCol=2;
-                        const int kernelRow=4;
-                        const int inOffset = imgSizeX * (imgSizeY * inputChannelIdx + kernelRow + y) + kernelCol;
-                        __m256 in = _mm256_loadu_ps(input + shift + inOffset);
+                        const int inOffset = initialOffset + imgSizeX * kernelRow + kernelCol;
+                        __m256 in = _mm256_loadu_ps(input + inOffset);
                         __m256 multiplied = _mm256_mul_ps(in, factor);
                         out = _mm256_add_ps(multiplied, out);}
                     {__m256 factor = _mm256_set1_ps(-0.767503);
                         const int kernelCol=3;
                         const int kernelRow=1;
-                        const int inOffset = imgSizeX * (imgSizeY * inputChannelIdx + kernelRow + y) + kernelCol;
-                        __m256 in = _mm256_loadu_ps(input + shift + inOffset);
+                        const int inOffset = initialOffset + imgSizeX * kernelRow + kernelCol;
+                        __m256 in = _mm256_loadu_ps(input + inOffset);
+                        __m256 multiplied = _mm256_mul_ps(in, factor);
+                        out = _mm256_add_ps(multiplied, out);}
+                    {__m256 factor = _mm256_set1_ps(0.527516);
+                        const int kernelCol=0;
+                        const int kernelRow=2;
+                        const int inOffset = initialOffset + imgSizeX * kernelRow + kernelCol;
+                        __m256 in = _mm256_loadu_ps(input + inOffset);
+                        __m256 multiplied = _mm256_mul_ps(in, factor);
+                        out = _mm256_add_ps(multiplied, out);}
+                    {__m256 factor = _mm256_set1_ps(0.403925);
+                        const int kernelCol=1;
+                        const int kernelRow=2;
+                        const int inOffset = initialOffset + imgSizeX * kernelRow + kernelCol;
+                        __m256 in = _mm256_loadu_ps(input + inOffset);
+                        __m256 multiplied = _mm256_mul_ps(in, factor);
+                        out = _mm256_add_ps(multiplied, out);}
+                    {__m256 factor = _mm256_set1_ps(-0.384715);
+                        const int kernelCol=2;
+                        const int kernelRow=2;
+                        const int inOffset = initialOffset + imgSizeX * kernelRow + kernelCol;
+                        __m256 in = _mm256_loadu_ps(input + inOffset);
                         __m256 multiplied = _mm256_mul_ps(in, factor);
                         out = _mm256_add_ps(multiplied, out);}
                     {__m256 factor = _mm256_set1_ps(-0.707691);
                         const int kernelCol=3;
                         const int kernelRow=2;
-                        const int inOffset = imgSizeX * (imgSizeY * inputChannelIdx + kernelRow + y) + kernelCol;
-                        __m256 in = _mm256_loadu_ps(input + shift + inOffset);
-                        __m256 multiplied = _mm256_mul_ps(in, factor);
-                        out = _mm256_add_ps(multiplied, out);}
-                    {__m256 factor = _mm256_set1_ps(0.499817);
-                        const int kernelCol=3;
-                        const int kernelRow=4;
-                        const int inOffset = imgSizeX * (imgSizeY * inputChannelIdx + kernelRow + y) + kernelCol;
-                        __m256 in = _mm256_loadu_ps(input + shift + inOffset);
+                        const int inOffset = initialOffset + imgSizeX * kernelRow + kernelCol;
+                        __m256 in = _mm256_loadu_ps(input + inOffset);
                         __m256 multiplied = _mm256_mul_ps(in, factor);
                         out = _mm256_add_ps(multiplied, out);}
                     {__m256 factor = _mm256_set1_ps(-0.465529);
                         const int kernelCol=4;
                         const int kernelRow=2;
-                        const int inOffset = imgSizeX * (imgSizeY * inputChannelIdx + kernelRow + y) + kernelCol;
-                        __m256 in = _mm256_loadu_ps(input + shift + inOffset);
+                        const int inOffset = initialOffset + imgSizeX * kernelRow + kernelCol;
+                        __m256 in = _mm256_loadu_ps(input + inOffset);
+                        __m256 multiplied = _mm256_mul_ps(in, factor);
+                        out = _mm256_add_ps(multiplied, out);}
+                    {__m256 factor = _mm256_set1_ps(0.412613);
+                        const int kernelCol=0;
+                        const int kernelRow=3;
+                        const int inOffset = initialOffset + imgSizeX * kernelRow + kernelCol;
+                        __m256 in = _mm256_loadu_ps(input + inOffset);
+                        __m256 multiplied = _mm256_mul_ps(in, factor);
+                        out = _mm256_add_ps(multiplied, out);}
+                    {__m256 factor = _mm256_set1_ps(0.903525);
+                        const int kernelCol=1;
+                        const int kernelRow=3;
+                        const int inOffset = initialOffset + imgSizeX * kernelRow + kernelCol;
+                        __m256 in = _mm256_loadu_ps(input + inOffset);
+                        __m256 multiplied = _mm256_mul_ps(in, factor);
+                        out = _mm256_add_ps(multiplied, out);}
+                    {__m256 factor = _mm256_set1_ps(0.495898);
+                        const int kernelCol=2;
+                        const int kernelRow=3;
+                        const int inOffset = initialOffset + imgSizeX * kernelRow + kernelCol;
+                        __m256 in = _mm256_loadu_ps(input + inOffset);
+                        __m256 multiplied = _mm256_mul_ps(in, factor);
+                        out = _mm256_add_ps(multiplied, out);}
+                    {__m256 factor = _mm256_set1_ps(0.426623);
+                        const int kernelCol=1;
+                        const int kernelRow=4;
+                        const int inOffset = initialOffset + imgSizeX * kernelRow + kernelCol;
+                        __m256 in = _mm256_loadu_ps(input + inOffset);
+                        __m256 multiplied = _mm256_mul_ps(in, factor);
+                        out = _mm256_add_ps(multiplied, out);}
+                    {__m256 factor = _mm256_set1_ps(0.795484);
+                        const int kernelCol=2;
+                        const int kernelRow=4;
+                        const int inOffset = initialOffset + imgSizeX * kernelRow + kernelCol;
+                        __m256 in = _mm256_loadu_ps(input + inOffset);
+                        __m256 multiplied = _mm256_mul_ps(in, factor);
+                        out = _mm256_add_ps(multiplied, out);}
+                    {__m256 factor = _mm256_set1_ps(0.499817);
+                        const int kernelCol=3;
+                        const int kernelRow=4;
+                        const int inOffset = initialOffset + imgSizeX * kernelRow + kernelCol;
+                        __m256 in = _mm256_loadu_ps(input + inOffset);
                         __m256 multiplied = _mm256_mul_ps(in, factor);
                         out = _mm256_add_ps(multiplied, out);}
                 }
@@ -597,6 +614,7 @@ template<> void runOutputReusage<float>(const float *input, const int imgSizeX, 
                 __m256 out = _mm256_setzero_ps();
                 {
                     const int inputChannelIdx = 0;
+                    const int initialOffset = imgSizeX * (imgSizeY * inputChannelIdx + y) + shift;
                 }
                 _mm256_storeu_ps(output + res_off + shift + y * outputPitchX, out);
             }
@@ -611,11 +629,12 @@ template<> void runOutputReusage<float>(const float *input, const int imgSizeX, 
                 __m256 out = _mm256_setzero_ps();
                 {
                     const int inputChannelIdx = 0;
+                    const int initialOffset = imgSizeX * (imgSizeY * inputChannelIdx + y) + shift;
                     {__m256 factor = _mm256_set1_ps(0.406751);
                         const int kernelCol=2;
                         const int kernelRow=0;
-                        const int inOffset = imgSizeX * (imgSizeY * inputChannelIdx + kernelRow + y) + kernelCol;
-                        __m256 in = _mm256_loadu_ps(input + shift + inOffset);
+                        const int inOffset = initialOffset + imgSizeX * kernelRow + kernelCol;
+                        __m256 in = _mm256_loadu_ps(input + inOffset);
                         __m256 multiplied = _mm256_mul_ps(in, factor);
                         out = _mm256_add_ps(multiplied, out);}
                 }
@@ -632,74 +651,75 @@ template<> void runOutputReusage<float>(const float *input, const int imgSizeX, 
                 __m256 out = _mm256_setzero_ps();
                 {
                     const int inputChannelIdx = 0;
-                    {__m256 factor = _mm256_set1_ps(-0.517685);
-                        const int kernelCol=1;
-                        const int kernelRow=1;
-                        const int inOffset = imgSizeX * (imgSizeY * inputChannelIdx + kernelRow + y) + kernelCol;
-                        __m256 in = _mm256_loadu_ps(input + shift + inOffset);
-                        __m256 multiplied = _mm256_mul_ps(in, factor);
-                        out = _mm256_add_ps(multiplied, out);}
-                    {__m256 factor = _mm256_set1_ps(0.551618);
-                        const int kernelCol=1;
-                        const int kernelRow=3;
-                        const int inOffset = imgSizeX * (imgSizeY * inputChannelIdx + kernelRow + y) + kernelCol;
-                        __m256 in = _mm256_loadu_ps(input + shift + inOffset);
-                        __m256 multiplied = _mm256_mul_ps(in, factor);
-                        out = _mm256_add_ps(multiplied, out);}
+                    const int initialOffset = imgSizeX * (imgSizeY * inputChannelIdx + y) + shift;
                     {__m256 factor = _mm256_set1_ps(-0.686802);
                         const int kernelCol=2;
                         const int kernelRow=0;
-                        const int inOffset = imgSizeX * (imgSizeY * inputChannelIdx + kernelRow + y) + kernelCol;
-                        __m256 in = _mm256_loadu_ps(input + shift + inOffset);
+                        const int inOffset = initialOffset + imgSizeX * kernelRow + kernelCol;
+                        __m256 in = _mm256_loadu_ps(input + inOffset);
                         __m256 multiplied = _mm256_mul_ps(in, factor);
                         out = _mm256_add_ps(multiplied, out);}
-                    {__m256 factor = _mm256_set1_ps(0.609644);
-                        const int kernelCol=2;
-                        const int kernelRow=2;
-                        const int inOffset = imgSizeX * (imgSizeY * inputChannelIdx + kernelRow + y) + kernelCol;
-                        __m256 in = _mm256_loadu_ps(input + shift + inOffset);
-                        __m256 multiplied = _mm256_mul_ps(in, factor);
-                        out = _mm256_add_ps(multiplied, out);}
-                    {__m256 factor = _mm256_set1_ps(0.44885);
-                        const int kernelCol=2;
-                        const int kernelRow=3;
-                        const int inOffset = imgSizeX * (imgSizeY * inputChannelIdx + kernelRow + y) + kernelCol;
-                        __m256 in = _mm256_loadu_ps(input + shift + inOffset);
+                    {__m256 factor = _mm256_set1_ps(-0.517685);
+                        const int kernelCol=1;
+                        const int kernelRow=1;
+                        const int inOffset = initialOffset + imgSizeX * kernelRow + kernelCol;
+                        __m256 in = _mm256_loadu_ps(input + inOffset);
                         __m256 multiplied = _mm256_mul_ps(in, factor);
                         out = _mm256_add_ps(multiplied, out);}
                     {__m256 factor = _mm256_set1_ps(0.53314);
                         const int kernelCol=3;
                         const int kernelRow=1;
-                        const int inOffset = imgSizeX * (imgSizeY * inputChannelIdx + kernelRow + y) + kernelCol;
-                        __m256 in = _mm256_loadu_ps(input + shift + inOffset);
-                        __m256 multiplied = _mm256_mul_ps(in, factor);
-                        out = _mm256_add_ps(multiplied, out);}
-                    {__m256 factor = _mm256_set1_ps(0.921052);
-                        const int kernelCol=3;
-                        const int kernelRow=2;
-                        const int inOffset = imgSizeX * (imgSizeY * inputChannelIdx + kernelRow + y) + kernelCol;
-                        __m256 in = _mm256_loadu_ps(input + shift + inOffset);
+                        const int inOffset = initialOffset + imgSizeX * kernelRow + kernelCol;
+                        __m256 in = _mm256_loadu_ps(input + inOffset);
                         __m256 multiplied = _mm256_mul_ps(in, factor);
                         out = _mm256_add_ps(multiplied, out);}
                     {__m256 factor = _mm256_set1_ps(0.571746);
                         const int kernelCol=4;
                         const int kernelRow=1;
-                        const int inOffset = imgSizeX * (imgSizeY * inputChannelIdx + kernelRow + y) + kernelCol;
-                        __m256 in = _mm256_loadu_ps(input + shift + inOffset);
+                        const int inOffset = initialOffset + imgSizeX * kernelRow + kernelCol;
+                        __m256 in = _mm256_loadu_ps(input + inOffset);
+                        __m256 multiplied = _mm256_mul_ps(in, factor);
+                        out = _mm256_add_ps(multiplied, out);}
+                    {__m256 factor = _mm256_set1_ps(0.609644);
+                        const int kernelCol=2;
+                        const int kernelRow=2;
+                        const int inOffset = initialOffset + imgSizeX * kernelRow + kernelCol;
+                        __m256 in = _mm256_loadu_ps(input + inOffset);
+                        __m256 multiplied = _mm256_mul_ps(in, factor);
+                        out = _mm256_add_ps(multiplied, out);}
+                    {__m256 factor = _mm256_set1_ps(0.921052);
+                        const int kernelCol=3;
+                        const int kernelRow=2;
+                        const int inOffset = initialOffset + imgSizeX * kernelRow + kernelCol;
+                        __m256 in = _mm256_loadu_ps(input + inOffset);
+                        __m256 multiplied = _mm256_mul_ps(in, factor);
+                        out = _mm256_add_ps(multiplied, out);}
+                    {__m256 factor = _mm256_set1_ps(0.551618);
+                        const int kernelCol=1;
+                        const int kernelRow=3;
+                        const int inOffset = initialOffset + imgSizeX * kernelRow + kernelCol;
+                        __m256 in = _mm256_loadu_ps(input + inOffset);
+                        __m256 multiplied = _mm256_mul_ps(in, factor);
+                        out = _mm256_add_ps(multiplied, out);}
+                    {__m256 factor = _mm256_set1_ps(0.44885);
+                        const int kernelCol=2;
+                        const int kernelRow=3;
+                        const int inOffset = initialOffset + imgSizeX * kernelRow + kernelCol;
+                        __m256 in = _mm256_loadu_ps(input + inOffset);
                         __m256 multiplied = _mm256_mul_ps(in, factor);
                         out = _mm256_add_ps(multiplied, out);}
                     {__m256 factor = _mm256_set1_ps(-0.55193);
                         const int kernelCol=4;
                         const int kernelRow=3;
-                        const int inOffset = imgSizeX * (imgSizeY * inputChannelIdx + kernelRow + y) + kernelCol;
-                        __m256 in = _mm256_loadu_ps(input + shift + inOffset);
+                        const int inOffset = initialOffset + imgSizeX * kernelRow + kernelCol;
+                        __m256 in = _mm256_loadu_ps(input + inOffset);
                         __m256 multiplied = _mm256_mul_ps(in, factor);
                         out = _mm256_add_ps(multiplied, out);}
                     {__m256 factor = _mm256_set1_ps(-0.389678);
                         const int kernelCol=4;
                         const int kernelRow=4;
-                        const int inOffset = imgSizeX * (imgSizeY * inputChannelIdx + kernelRow + y) + kernelCol;
-                        __m256 in = _mm256_loadu_ps(input + shift + inOffset);
+                        const int inOffset = initialOffset + imgSizeX * kernelRow + kernelCol;
+                        __m256 in = _mm256_loadu_ps(input + inOffset);
                         __m256 multiplied = _mm256_mul_ps(in, factor);
                         out = _mm256_add_ps(multiplied, out);}
                 }
@@ -708,6 +728,7 @@ template<> void runOutputReusage<float>(const float *input, const int imgSizeX, 
         }
     }
 }
+
 
 
 #endif //CAFFE_CODEGEN_TRAD_H

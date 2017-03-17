@@ -1,22 +1,24 @@
 //
-// Created by alex on 10.03.17.
+// Created by alex on 17.03.17.
 //
 
-#ifndef CAFFE_CODEGEN_LAYERS_H
-#define CAFFE_CODEGEN_LAYERS_H
+#ifndef CAFFE_CODEGEN_LAYER2_UNFOLDED_H
+#define CAFFE_CODEGEN_LAYER2_UNFOLDED_H
+
 
 
 template<typename Dtype>
-void run222(const Dtype* input, const int imgSizeX, const int imgSizeY, Dtype* output, const int outputPitchX, const int resSizeX, const int resSizeY);
+void run50Unfolded(const Dtype *img, const int imgSizeX, const int imgSizeY, Dtype *output, const int outputPitchX,
+const int outputSizeX, const int outputSizeY);
 
 template<>
-void run222<double>(const double* input, const int imgSizeX, const int imgSizeY, double* output, const int outputPitchX, const int resSizeX, const int resSizeY){
-
-
+void run50Unfolded<double>(const double *img, const int imgSizeX, const int imgSizeY, double *output, const int outputPitchX,
+const int outputSizeX, const int outputSizeY) {
+throw 1;
 }
 
 template<>
-void run222(const float *input, const int imgSizeX, const int imgSizeY, float *output, const int outputPitchX, const int resSizeX, const int resSizeY) {
+void run50Unfolded(const float *input, const int imgSizeX, const int imgSizeY, float *output, const int outputPitchX, const int resSizeX, const int resSizeY) {
 const int kernelSizeY = 5;
 const int inputSize = imgSizeX * imgSizeY;
 {
@@ -78502,4 +78504,4 @@ _mm256_storeu_ps(output + outputChannelIdx * outputPitchX * resSizeY + outputPit
 }
 
 
-#endif //CAFFE_CODEGEN_LAYERS_H
+#endif //CAFFE_CODEGEN_LAYER2_UNFOLDED_H

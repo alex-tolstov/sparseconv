@@ -76,14 +76,29 @@ namespace caffe {
 		int lastIndex = 0;
 		indicesRow.push_back(0);
 		indicesChannel.push_back(0);
+        std::vector<int> counts(1 + kernelSize, 0);
+
+//        std::stringstream fileName;
+//        fileName << "/home/alex/paulsutter/weights_" << sizeX * sizeY << ".csv";
+//        LOG(INFO) << "kernels csv fileName=" << fileName.str();
+//        std::ofstream f;
+//        f.open(fileName.str().c_str());
+//
+//        f << "nOutputChannels=" << sizeY << ", nInputChannels=" << sizeX / channelSize << ", kernelSizeX=" << kernelSizeX << ", kernelSizeY=" << kernelSizeY << std::endl;
+
 		for (int y = 0; y < sizeY; y++) {
 			const int nChannels = sizeX / channelSize;
 			for (int ch = 0; ch < nChannels; ch++) {
 				int countInTheChannel = 0;
-                for (int kCol = 0; kCol < kernelSizeX; kCol++) {
-                    for (int kRow = 0; kRow < kernelSizeY; kRow++) {
-                        if (kernel[y * sizeX + ch * channelSize + kRow * kernelSizeX + kCol] != 0) {
-                            values.push_back(kernel[y * sizeX + ch * channelSize + kRow * kernelSizeX + kCol]);
+				for (int kRow = 0; kRow < kernelSizeY; kRow++) {
+					for (int kCol = 0; kCol < kernelSizeX; kCol++) {
+                        Dtype value = kernel[y * sizeX + ch * channelSize + kRow * kernelSizeX + kCol];
+//                        if (kCol != 0) {
+//                            f << ",";
+//                        }
+//                        f << value;
+                        if (value != 0) {
+                            values.push_back(value);
 
                             int kx = kCol;
                             int ky = kRow;
@@ -93,28 +108,20 @@ namespace caffe {
                             countInTheChannel++;
                         }
                     }
+//                    f << std::endl;
                 }
-                /*
-				for (int i = 0; i < channelSize; i++) {
-					int x = ch * channelSize + i;
-					if (kernel[y * sizeX + x] != 0) {
-						values.push_back(kernel[y * sizeX + x]);
-
-						int kernel = x % kernelSize;
-						int kx = kernel % kernelSizeX;
-						int ky = kernel / kernelSizeY;
-
-						cellInfo.push_back(kx + (ky << 8));
-
-						countInTheChannel++;
-					}
-				}
-                */
+//                f << std::endl << std::endl;
+                counts[countInTheChannel]++;
 				lastIndex += countInTheChannel;
 				indicesChannel.push_back(lastIndex);
 			}
-			indicesRow.push_back(lastIndex);
+//            f << std::endl << std::endl << std::endl;
+            indicesRow.push_back(lastIndex);
 		}
+
+//        f.close();
+
+
 	}
 
 
