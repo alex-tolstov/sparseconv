@@ -91,8 +91,8 @@ namespace caffe {
 			for (int ch = 0; ch < nChannels; ch++) {
 				int countInTheChannel = 0;
 				for (int kRow = 0; kRow < kernelSizeY; kRow++) {
-					for (int kCol = 0; kCol < kernelSizeX; kCol++) {
-                        Dtype value = kernel[y * sizeX + ch * channelSize + kRow * kernelSizeX + kCol];
+	                for (int kCol = 0; kCol < kernelSizeX; kCol++) {
+					    Dtype value = kernel[y * sizeX + ch * channelSize + kRow * kernelSizeX + kCol];
 //                        if (kCol != 0) {
 //                            f << ",";
 //                        }

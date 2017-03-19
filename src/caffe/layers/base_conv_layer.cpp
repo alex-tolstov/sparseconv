@@ -11,13 +11,12 @@
 #include "caffe/util/direct_sparse_convolution_ex.hpp"
 #include "caffe/util/convolution_code_generation.hpp"
 #include "caffe/util/convolution_sparse_cache.hpp"
-#include "caffe/util/codegen_layer1.h"
-#include "caffe/util/codegen_layers2.h"
-#include "caffe/util/codegen_trad.h"
-#include "caffe/util/codegen_trad_50.h"
-#include "caffe/util/codegen_layer1_unfolded.h"
-#include "caffe/util/codegen_layer2_unfolded.h"
- 
+#include "caffe/util/generated_several_outputs_layer1_unrolled.h"
+#include "caffe/util/generated_several_outputs_layer2_unrolled.h"
+#include "caffe/util/generated_traditional_layer1.h"
+#include "caffe/util/generated_traditional_layer2.h"
+#include "caffe/util/generated_several_outputs_layer1.h"
+#include "caffe/util/generated_several_outputs_layer2.h"
 
 #ifdef MKL_USE
 #include "caffe/util/sparse_gemm_mkl.hpp"
@@ -265,17 +264,17 @@ void BaseConvolutionLayer<Dtype>::forward_cpu_sparse_conv_ch(
 //	LOG(INFO)<< "Image size (" << this->width_ << ", " << this->height_ << ")";
 //	LOG(INFO)<< "Output size (" << this->width_out_ << ", " << height_out_ << ")";
 //	LOG(INFO)<< "Channels: input=" << this->channels_ << ", output=" << this->num_output_;
-//	LOG(INFO)<< "Pad w = " << this->pad_w_ << ", pad h = " << this->pad_h_; 
-
-
-
-
+//	LOG(INFO)<< "Pad w = " << this->pad_w_ << ", pad h = " << this->pad_h_;
 
     if (this->num_output_ == 20) {
-        run20Unfolded(input, this->width_, this->height_,
-             output, this->width_out_, this->width_out_, this->height_out_);
+//        run20SeveralOutputs(input, this->width_, this->height_, output, this->width_out_, this->width_out_, this->height_out_);
+        run20SeveralOutputsUnrolled(input, this->width_, this->height_, output, this->width_out_, this->width_out_, this->height_out_);
+//        runTraditional20(input, this->width_, this->height_, output, this->width_out_, this->width_out_, this->height_out_);
     } else {
-        run50Unfolded(input, this->width_, this->height_, output, this->width_out_, this->width_out_, this->height_out_);
+//        run50SeveralOutputs(input, this->width_, this->height_, output, this->width_out_, this->width_out_, this->height_out_);
+        run50SeveralOutputsUnrolled(input, this->width_, this->height_, output, this->width_out_, this->width_out_, this->height_out_);
+//        runTraditional50(input, this->width_, this->height_, output, this->width_out_, this->width_out_, this->height_out_);
+
 //        caffe::directConvolutionRegisters(
 //                weightCompressed,
 //                indicesX,

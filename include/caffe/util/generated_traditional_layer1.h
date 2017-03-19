@@ -1,19 +1,15 @@
-//
-// Created by alex on 11.03.17.
-//
-
 #ifndef CAFFE_CODEGEN_TRAD_H
 #define CAFFE_CODEGEN_TRAD_H
 
 template<typename Dtype>
-void runOutputReusage(const Dtype *input, const int imgSizeX, const int imgSizeY, Dtype *output, const int outputPitchX, const int resSizeX, const int resSizeY);
+void runTraditional20(const Dtype *input, const int imgSizeX, const int imgSizeY, Dtype *output, const int outputPitchX, const int resSizeX, const int resSizeY);
 
 template<>
-void runOutputReusage<double>(const double *input, const int imgSizeX, const int imgSizeY, double *output, const int outputPitchX, const int resSizeX, const int resSizeY) {
+void runTraditional20<double>(const double *input, const int imgSizeX, const int imgSizeY, double *output, const int outputPitchX, const int resSizeX, const int resSizeY) {
 
 }
 
-template<> void runOutputReusage<float>(const float *input, const int imgSizeX, const int imgSizeY, float *output, const int outputPitchX, const int resSizeX, const int resSizeY) {
+template<> void runTraditional20<float>(const float *input, const int imgSizeX, const int imgSizeY, float *output, const int outputPitchX, const int resSizeX, const int resSizeY) {
     {
         const int outputChannelIdx=0;
         const int res_off = outputPitchX * resSizeY * outputChannelIdx;
@@ -21,10 +17,6 @@ template<> void runOutputReusage<float>(const float *input, const int imgSizeX, 
             const int shift = dim << 3;
             for (int y = 0; y < resSizeY; y++) {
                 __m256 out = _mm256_setzero_ps();
-                {
-                    const int inputChannelIdx = 0;
-                    const int initialOffset = imgSizeX * (imgSizeY * inputChannelIdx + y) + shift;
-                }
                 _mm256_storeu_ps(output + res_off + shift + y * outputPitchX, out);
             }
         }
@@ -101,10 +93,6 @@ template<> void runOutputReusage<float>(const float *input, const int imgSizeX, 
             const int shift = dim << 3;
             for (int y = 0; y < resSizeY; y++) {
                 __m256 out = _mm256_setzero_ps();
-                {
-                    const int inputChannelIdx = 0;
-                    const int initialOffset = imgSizeX * (imgSizeY * inputChannelIdx + y) + shift;
-                }
                 _mm256_storeu_ps(output + res_off + shift + y * outputPitchX, out);
             }
         }
@@ -116,10 +104,6 @@ template<> void runOutputReusage<float>(const float *input, const int imgSizeX, 
             const int shift = dim << 3;
             for (int y = 0; y < resSizeY; y++) {
                 __m256 out = _mm256_setzero_ps();
-                {
-                    const int inputChannelIdx = 0;
-                    const int initialOffset = imgSizeX * (imgSizeY * inputChannelIdx + y) + shift;
-                }
                 _mm256_storeu_ps(output + res_off + shift + y * outputPitchX, out);
             }
         }
@@ -131,10 +115,6 @@ template<> void runOutputReusage<float>(const float *input, const int imgSizeX, 
             const int shift = dim << 3;
             for (int y = 0; y < resSizeY; y++) {
                 __m256 out = _mm256_setzero_ps();
-                {
-                    const int inputChannelIdx = 0;
-                    const int initialOffset = imgSizeX * (imgSizeY * inputChannelIdx + y) + shift;
-                }
                 _mm256_storeu_ps(output + res_off + shift + y * outputPitchX, out);
             }
         }
@@ -146,10 +126,6 @@ template<> void runOutputReusage<float>(const float *input, const int imgSizeX, 
             const int shift = dim << 3;
             for (int y = 0; y < resSizeY; y++) {
                 __m256 out = _mm256_setzero_ps();
-                {
-                    const int inputChannelIdx = 0;
-                    const int initialOffset = imgSizeX * (imgSizeY * inputChannelIdx + y) + shift;
-                }
                 _mm256_storeu_ps(output + res_off + shift + y * outputPitchX, out);
             }
         }
@@ -239,10 +215,6 @@ template<> void runOutputReusage<float>(const float *input, const int imgSizeX, 
             const int shift = dim << 3;
             for (int y = 0; y < resSizeY; y++) {
                 __m256 out = _mm256_setzero_ps();
-                {
-                    const int inputChannelIdx = 0;
-                    const int initialOffset = imgSizeX * (imgSizeY * inputChannelIdx + y) + shift;
-                }
                 _mm256_storeu_ps(output + res_off + shift + y * outputPitchX, out);
             }
         }
@@ -375,10 +347,6 @@ template<> void runOutputReusage<float>(const float *input, const int imgSizeX, 
             const int shift = dim << 3;
             for (int y = 0; y < resSizeY; y++) {
                 __m256 out = _mm256_setzero_ps();
-                {
-                    const int inputChannelIdx = 0;
-                    const int initialOffset = imgSizeX * (imgSizeY * inputChannelIdx + y) + shift;
-                }
                 _mm256_storeu_ps(output + res_off + shift + y * outputPitchX, out);
             }
         }
@@ -390,10 +358,6 @@ template<> void runOutputReusage<float>(const float *input, const int imgSizeX, 
             const int shift = dim << 3;
             for (int y = 0; y < resSizeY; y++) {
                 __m256 out = _mm256_setzero_ps();
-                {
-                    const int inputChannelIdx = 0;
-                    const int initialOffset = imgSizeX * (imgSizeY * inputChannelIdx + y) + shift;
-                }
                 _mm256_storeu_ps(output + res_off + shift + y * outputPitchX, out);
             }
         }
@@ -405,10 +369,6 @@ template<> void runOutputReusage<float>(const float *input, const int imgSizeX, 
             const int shift = dim << 3;
             for (int y = 0; y < resSizeY; y++) {
                 __m256 out = _mm256_setzero_ps();
-                {
-                    const int inputChannelIdx = 0;
-                    const int initialOffset = imgSizeX * (imgSizeY * inputChannelIdx + y) + shift;
-                }
                 _mm256_storeu_ps(output + res_off + shift + y * outputPitchX, out);
             }
         }
@@ -484,10 +444,6 @@ template<> void runOutputReusage<float>(const float *input, const int imgSizeX, 
             const int shift = dim << 3;
             for (int y = 0; y < resSizeY; y++) {
                 __m256 out = _mm256_setzero_ps();
-                {
-                    const int inputChannelIdx = 0;
-                    const int initialOffset = imgSizeX * (imgSizeY * inputChannelIdx + y) + shift;
-                }
                 _mm256_storeu_ps(output + res_off + shift + y * outputPitchX, out);
             }
         }
@@ -612,10 +568,6 @@ template<> void runOutputReusage<float>(const float *input, const int imgSizeX, 
             const int shift = dim << 3;
             for (int y = 0; y < resSizeY; y++) {
                 __m256 out = _mm256_setzero_ps();
-                {
-                    const int inputChannelIdx = 0;
-                    const int initialOffset = imgSizeX * (imgSizeY * inputChannelIdx + y) + shift;
-                }
                 _mm256_storeu_ps(output + res_off + shift + y * outputPitchX, out);
             }
         }

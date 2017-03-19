@@ -1,7 +1,3 @@
-//
-// Created by alex on 09.03.17.
-//
-
 #ifndef CAFFE_CODEGEN_H
 #define CAFFE_CODEGEN_H
 
@@ -82,19 +78,36 @@ namespace caffe {
                 code << "\t\t\tcollectedOutput[0] = _mm256_setzero_ps();" << std::endl;
 
                 for (int inputChannelIdx = 0; inputChannelIdx < nInputChannels; inputChannelIdx++) {
+                    const int beginIdx = indicesChannels[outputChannelIdx * nInputChannels + inputChannelIdx];
+                    const int endIdx = indicesChannels[outputChannelIdx * nInputChannels + inputChannelIdx + 1];
+
+                    if (beginIdx == endIdx) {
+                        continue;
+                    }
+
+                    std::vector<KernelCell> cells;
+
+                    for (int idx = beginIdx; idx < endIdx; idx++) {
+                        const int kernelColRow = cellInfo[idx];
+                        const int kernelCol = kernelColRow & 0xFF;
+                        const int kernelRow = (kernelColRow >> 8) & 0xFF;
+                        const float value = kernel[idx];
+
+                        cells.push_back(KernelCell(kernelCol,kernelRow,value));
+                    }
+
+                    // sorted by column is preferred here due to memory access way
+                    std::sort(cells.begin(), cells.end());
+
                     code << "\t{" << std::endl;
                     code << "\t\t\tconst int inputChannelIdx = " << inputChannelIdx << ";" << std::endl;
                     code << "\t\t\tconst int inputOffset = inputSize * inputChannelIdx + inputRow * imgSizeX + shift;"
                          << std::endl;
 
-                    const int beginIdx = indicesChannels[outputChannelIdx * nInputChannels + inputChannelIdx];
-                    const int endIdx = indicesChannels[outputChannelIdx * nInputChannels + inputChannelIdx + 1];
-
-                    for (int kernelValueIdx = beginIdx; kernelValueIdx < endIdx; kernelValueIdx++) {
-                        const int kernelColRow = cellInfo[kernelValueIdx];
-                        const int kernelCol = kernelColRow & 0xFF;
-                        const int kernelRow = (kernelColRow >> 8) & 0xFF;
-                        const Dtype value = kernel[kernelValueIdx];
+                    for (int kernelValueIdx = 0; kernelValueIdx < cells.size(); kernelValueIdx++) {
+                        const int kernelCol = cells[kernelValueIdx].kernelCol;
+                        const int kernelRow = cells[kernelValueIdx].kernelRow;
+                        const Dtype value = cells[kernelValueIdx].value;
 
                         code << "\t\t\t{" << std::endl;
                         code << "\t\t\t\tconst int kernelCol=" << kernelCol << ";" << std::endl;
@@ -148,7 +161,6 @@ namespace caffe {
         code << "void run(const float *input, const int imgSizeX, const int imgSizeY, float *output, const int outputPitchX, const int resSizeX, const int resSizeY) {" << std::endl;
 
         code << "\tconst int kernelSizeY = " << kernelSizeY << ";" << std::endl;
-        code << "\tconst int inputSize = imgSizeX * imgSizeY;" << std::endl;
         for (int outputChannelIdx = 0; outputChannelIdx < nOutputChannels; outputChannelIdx++) {
             code << "\t{" << std::endl;
 
@@ -190,19 +202,32 @@ namespace caffe {
                         continue;
                     }
 
+                    std::vector<KernelCell> cells;
+
+                    for (int idx = beginIdx; idx < endIdx; idx++) {
+                        const int kernelColRow = cellInfo[idx];
+                        const int kernelCol = kernelColRow & 0xFF;
+                        const int kernelRow = (kernelColRow >> 8) & 0xFF;
+                        const float value = kernel[idx];
+
+                        cells.push_back(KernelCell(kernelCol,kernelRow,value));
+                    }
+
+                    // sorted by column is preferred here due to memory access way
+                    std::sort(cells.begin(), cells.end());
+
                     code << "\t\t\t\t{" << std::endl;
                     code << "\t\t\t\t\tconst int inputChannelIdx = " << inputChannelIdx << ";" << std::endl;
                     code << "\t\t\t\t\tconst int inputOffset = imgSizeX * (imgSizeY * inputChannelIdx + inputRow) + shift;" << std::endl;
 
-                    for (int kernelValueIdx = beginIdx; kernelValueIdx < endIdx; kernelValueIdx++) {
-                        const int kernelColRow = cellInfo[kernelValueIdx];
-                        const int kernelCol = kernelColRow & 0xFF;
-                        const int kernelRow = (kernelColRow >> 8) & 0xFF;
-                        const Dtype value = kernel[kernelValueIdx];
+                    for (int kernelValueIdx = 0; kernelValueIdx < cells.size(); kernelValueIdx++) {
+                        const int kernelCol = cells[kernelValueIdx].kernelCol;
+                        const int kernelRow = cells[kernelValueIdx].kernelRow;
+                        const Dtype value = cells[kernelValueIdx].value;
 
                         code << "\t\t\t{" << std::endl;
                         code << "\t\t\t\tconst int kernelCol=" << kernelCol << ";"<< std::endl;
-                        code << "\t\t\t\tconst int kernelRow=" << kernelRow << ";"<< std::endl;
+                        code << "\t\t\t\t//const int kernelRow=" << kernelRow << ";"<< std::endl;
                         code << "\t\t\t\tconst float value=" << value << ";" << std::endl;
                         code << "\t\t\t\t__m256 multiplier = _mm256_set1_ps(value);"<< std::endl;
                         code << "\t\t\t\t__m256 generated = _mm256_loadu_ps(input + inputOffset + kernelCol);"<< std::endl;
@@ -252,7 +277,6 @@ namespace caffe {
 
         code << "template<> void runOutputReusage<float>(const float *input, const int imgSizeX, const int imgSizeY, float *output, const int outputPitchX, const int resSizeX, const int resSizeY) {" << std::endl;
 
-        const int kernelSize = kernelSizeX * kernelSizeY;
         for (int row = 0; row < nOutputChannels; row++) {
             code << "\t{" << std::endl;
             code << "\t\tconst int outputChannelIdx=" << row << ";" << std::endl;
@@ -277,6 +301,7 @@ namespace caffe {
                         continue;
                     }
 
+                    // natural sorting (i.e. by row is preferred here)
                     code << "\t\t\t\t{" << std::endl;
                     code << "\t\t\t\t\tconst int inputChannelIdx = " << inputChannelIdx << ";" << std::endl;
                     code << "\t\t\t\t\tconst int initialOffset = imgSizeX * (imgSizeY * inputChannelIdx + y) + shift;" << std::endl;
